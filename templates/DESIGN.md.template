@@ -1,0 +1,39 @@
+---
+brand_name: "{{BRAND_NAME}}"
+url: "{{URL}}"
+logo: "{{LOGO_PATH}}"
+output_dir: ".blog-covers"
+canvas_size: "2240x1260"
+consistency: "neutral"
+---
+
+## Palette
+
+- primary_bg: {{PRIMARY_BG}}
+- accent: {{ACCENT}}
+- text: {{TEXT}}
+- muted: {{MUTED}}
+{{EXTRA_PALETTE}}
+
+## Typography
+
+- display: "{{DISPLAY_FONT}}", {{DISPLAY_WEIGHTS}}
+- mono: "{{MONO_FONT}}", {{MONO_WEIGHTS}}
+- source: {{FONT_SOURCE}}
+
+## Voice / editorial tone
+
+{{VOICE_NOTES}}
+
+## Visual preferences
+
+{{VISUAL_NOTES}}
+
+## Existing covers (optional, for reference)
+
+The skill scans `.blog-covers/*.png` automatically and includes them as
+neutral context when generating new covers. Set `consistency` to:
+
+- `consistent` — new covers should visually match the existing set (same metaphors, same layout family)
+- `varied` — new covers should explicitly avoid repeating prior layouts (anti-template)
+- `neutral` — no enforcement either way (default)

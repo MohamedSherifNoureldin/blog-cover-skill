@@ -1,0 +1,29 @@
+{
+  "name": "blog-cover-skill",
+  "version": "0.1.0",
+  "description": "Generate branded blog cover images via Claude Code. 3-concept exploration, subagent review, optional Codex adversarial pass.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Mohamed Sherif",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mohamedsherif/blog-cover-skill"
+  },
+  "bin": {
+    "blog-cover-render": "./scripts/render.mjs",
+    "blog-cover-init": "./scripts/init-design.mjs"
+  },
+  "scripts": {
+    "render": "node scripts/render.mjs",
+    "init": "node scripts/init-design.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^23.0.0",
+    "sharp": "^0.33.0",
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

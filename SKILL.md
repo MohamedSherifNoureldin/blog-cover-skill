@@ -1,0 +1,289 @@
+---
+name: blog-cover
+description: Generate a branded blog cover image. Auto-discovers brand from DESIGN.md/BRAND.md/Tailwind/CSS or runs interactive bootstrap. Renders 3 concepts at 2240x1260, user picks one, optional unbiased subagent + Codex review.
+---
+
+# /blog-cover
+
+You are running the `/blog-cover` skill. Generate a single branded blog cover image for the user's blog post or topic.
+
+## Usage
+
+```
+/blog-cover <markdown-path-or-free-text> [--codex] [--interactive] [--size WxH]
+```
+
+Examples:
+- `/blog-cover blog-content/03-ai-phishing.md`
+- `/blog-cover "AI phishing in 2026" --codex`
+- `/blog-cover blog-content/03-ai-phishing.md --interactive`
+- `/blog-cover post.md --size 1200x630`
+
+## Flags
+
+| Flag | Effect |
+|---|---|
+| `--codex` | After Claude subagent review, also run an adversarial Codex review |
+| `--interactive` | Skip brand auto-discovery; ask the user every brand question |
+| `--size WxH` | Override canvas size (default 2240x1260 or `canvas_size` from DESIGN.md) |
+
+---
+
+## Step 0 — Setup
+
+Confirm the skill's helper scripts are available. Determine the skill's installed path. The scripts live at `{skill_root}/scripts/`:
+- `render.mjs`
+- `extract-brand.mjs`
+- `init-design.mjs`
+
+Confirm Node ≥18 and Puppeteer are available. If Puppeteer is missing, instruct the user:
+
+```
+This skill needs Puppeteer. Install once with:
+  cd <your-repo> && npm install --save-dev puppeteer
+Then retry.
+```
+
+Stop if missing.
+
+---
+
+## Step 1 — Detect input type
+
+Parse the user's argument:
+- If it's an existing file path with `.md`, `.mdx`, or `.markdown` extension → **markdown mode**
+- Otherwise → **prompt mode**
+
+If neither and no arg was passed, use AskUserQuestion to ask whether they want to point to a markdown file or describe a topic.
+
+---
+
+## Step 2 — Brand discovery
+
+If `--interactive` was passed, jump straight to Step 2c. Otherwise:
+
+### 2a. Waterfall via `extract-brand.mjs`
+
+Run:
+```bash
+node {skill_root}/scripts/extract-brand.mjs "$(pwd)"
+```
+
+Parse the JSON. The `source` field tells you what was found: `design.md`, `brand.md`, `tailwind+css`, or `none`.
+
+### 2b. Decide whether the result is sufficient
+
+Required-minimum fields: `brand_name`, `url`, `logo`, `colors` (with at least primary_bg + accent + text).
+
+If all four are present, the brand spec is sufficient. Proceed to Step 3.
+
+If `source === "tailwind+css"`, you have colors but probably nothing else. Surface to the user what you found and ask for the missing pieces in ONE AskUserQuestion batch.
+
+If `source === "none"`, fall through to interactive bootstrap (2c).
+
+### 2c. Interactive bootstrap (`init-design.mjs`)
+
+This writes a new `DESIGN.md` at the repo root so the user doesn't have to answer again on future invocations.
+
+Use AskUserQuestion to gather:
+1. Brand name
+2. Site URL (e.g., `acme.com/blog`)
+3. Logo path (SVG preferred; PNG fine; or "I'll paste the SVG" path)
+4. Primary background color (hex)
+5. Accent color (hex)
+6. Display font family + weights
+7. Mono/body font family + weights
+8. (Optional) Editorial voice notes
+9. (Optional) Visual preferences / things to avoid
+10. (Optional) Consistency posture: `consistent` / `varied` / `neutral` (default neutral)
+
+Write the answers to `./DESIGN.md` using the template at `{skill_root}/templates/DESIGN.md.template`. Tell the user the file was written so they can hand-edit later.
+
+---
+
+## Step 3 — Content extraction
+
+### 3a. Markdown mode
+Read the markdown file. Extract:
+- **Title**: H1 or front-matter title
+- **Slug**: filename without extension, or front-matter slug
+- **Editorial angle**: first paragraph or front-matter description
+- **Key data points**: numbered stats, currency values, percentage claims (grep for them) — list 3-5
+
+Confirm the extracted info with the user via AskUserQuestion if anything is missing or ambiguous. If everything is clear, skip the confirmation.
+
+### 3b. Prompt mode
+The free-text arg IS the topic. Use AskUserQuestion to gather:
+- Slug (kebab-case, used for filename)
+- Editorial angle (1-2 sentences on what the post argues)
+- (Optional) Key data points to feature
+
+---
+
+## Step 4 — Concept generation
+
+Read `{skill_root}/prompts/concept-generation.md` as your template. Fill in:
+- All brand fields from Step 2
+- Topic, angle, key data from Step 3
+- Canvas size (default 2240x1260 or from `--size` / `canvas_size`)
+- Slug
+- Prior cover thumbnails: list every PNG in `.blog-covers/*.png` (excluding `.concepts/`)
+- Consistency posture from DESIGN.md (default `neutral`)
+
+Ensure `.blog-covers/` and `.blog-covers/.concepts/` exist. If `.gitignore` exists, append `.blog-covers/.concepts/` to it (once).
+
+Also ensure `.blog-covers/_shared.css` exists. If absent, write it now with the brand variables wired in:
+```css
+:root {
+  --bg: <primary_bg>;
+  --accent: <accent>;
+  --text: <text>;
+  --muted: <muted-or-rgba-text-40>;
+  --display: '<display_font>', system-ui, sans-serif;
+  --mono: '<mono_font>', ui-monospace, monospace;
+}
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: var(--display);
+  width: <canvas_width>px; height: <canvas_height>px; overflow: hidden; position: relative; }
+@import url('https://fonts.googleapis.com/css2?family=<display>:wght@<weights>&family=<mono>:wght@<weights>&display=swap');
+/* + brand-logo + brand-url base styles */
+```
+
+Generate three distinct concept HTMLs:
+- `.blog-covers/.concepts/{slug}-a.html`
+- `.blog-covers/.concepts/{slug}-b.html`
+- `.blog-covers/.concepts/{slug}-c.html`
+
+Each must follow the rules in `concept-generation.md`: distinct metaphor (not three variations of the same idea), readable type at feed scale, sourced or removed stats, no overlapping elements, brand row at bottom.
+
+---
+
+## Step 5 — Render concepts
+
+```bash
+node {skill_root}/scripts/render.mjs --batch .blog-covers/.concepts {canvas_width} {canvas_height}
+```
+
+Verify all three PNGs exist. If any failed, fix the offending HTML and re-render only the failures.
+
+---
+
+## Step 6 — Picker UI
+
+Read all three PNGs into the conversation using Read so the user sees them inline. Label them A, B, C clearly above each.
+
+Then use AskUserQuestion:
+
+```
+Which concept do you want to refine?
+A) [one-line description of concept A]
+B) [one-line description of concept B]
+C) [one-line description of concept C]
+D) None — generate 3 new concepts
+```
+
+If the user picks D, regenerate 3 fresh concepts (cap at 3 total retry rounds before insisting the user pick). Each retry round should explicitly diverge from prior rejected concepts — pass the rejected thumbnails in the prompt as "do not repeat these".
+
+---
+
+## Step 7 — Promote winner
+
+When the user picks A/B/C:
+1. Copy the winning HTML to `.blog-covers/{slug}.html`
+2. Delete the other two concepts from `.blog-covers/.concepts/`
+3. Re-render the final PNG:
+   ```bash
+   node {skill_root}/scripts/render.mjs .blog-covers/{slug}.html .blog-covers/{slug}.png {w} {h}
+   ```
+4. Show the final PNG to the user via Read.
+
+---
+
+## Step 8 — Review
+
+### 8a. Claude unbiased subagent (always runs)
+
+Spawn an Agent with `subagent_type: general-purpose`. The prompt is the contents of `{skill_root}/prompts/review.md` with the placeholders filled in. The subagent has no prior conversation context — it's a fresh perspective.
+
+The subagent must:
+- Rate the cover 1-10
+- List **ALL** issues, numbered, with what/why/fix per item
+- Surface cross-cutting patterns
+- Name the single highest-impact fix
+
+### 8b. Codex adversarial review (only if `--codex` flag set)
+
+Check the Codex CLI is installed:
+```bash
+CODEX_BIN=$(which codex 2>/dev/null || echo "")
+```
+
+If missing, warn the user "Codex CLI not installed — skipping adversarial review (install with `npm install -g @openai/codex` to enable)." Continue without it.
+
+If present, run:
+```bash
+codex exec "<the same review prompt, with adversarial framing prepended>" \
+  -C "$(pwd)" -s read-only \
+  -c 'model_reasoning_effort="high"' \
+  < /dev/null 2>/dev/null
+```
+
+Adversarial framing prefix:
+> Be adversarial. Try to break this cover. Flag marketing fluff, fake-precision stats, visual clichés, type collisions, unclear hierarchy, illegible captions. List ALL issues, not just top ones.
+
+### 8c. Present findings
+
+Show both reviews verbatim. If Codex also ran, add a brief cross-model agreement summary:
+
+```
+CROSS-MODEL AGREEMENT
+  Both flagged: [issues both raised]
+  Only Claude: [Claude-unique]
+  Only Codex: [Codex-unique]
+```
+
+---
+
+## Step 9 — Apply fixes (user-gated)
+
+DO NOT auto-apply fixes. Use AskUserQuestion:
+
+```
+Apply review fixes?
+A) Apply all consensus fixes (issues both reviewers flagged)
+B) Apply specific fixes — I'll pick from the list
+C) Skip fixes — ship as-is
+D) Discard this cover and start over
+```
+
+If A or B: edit `.blog-covers/{slug}.html`, re-render, show the new PNG. Loop back to Step 8 if user wants another review pass (max 3 total review rounds per cover — flag if exceeded).
+
+If C: report final paths to user.
+
+If D: delete `.blog-covers/{slug}.{html,png}`, return to Step 4.
+
+---
+
+## Step 10 — Done
+
+Report final artifacts:
+
+```
+Cover ready:
+  PNG: .blog-covers/{slug}.png
+  HTML source: .blog-covers/{slug}.html (kept for hand-tweaking — re-run `node {skill_root}/scripts/render.mjs ...` if you edit it)
+
+Final rating: N/10 (from review pass)
+```
+
+Do not commit to git — the user controls their git state.
+
+---
+
+## Notes
+
+- **Loop protection**: cap at 3 retry rounds in Step 6 and 3 review rounds in Step 8. If exceeded, stop and tell the user the skill can't satisfy the constraint set — manual intervention needed.
+- **No auto-fix**: every fix is gated by user choice. The skill surfaces; the user decides.
+- **No git side effects**: the skill never runs `git add`, `git commit`, or `git push`. It writes files; the user commits.
+- **Brand respect**: do not override user brand choices. If DESIGN.md says `consistency: consistent`, do not generate wildly varied concepts. If it says `varied`, explicitly diverge from prior covers.
+- **AI vocabulary ban applies to ALL generated content**: cover text, concept descriptions presented to user, review prompts. No "delve / robust / comprehensive / nuanced / pivotal / landscape / tapestry / underscore / foster / showcase / intricate / vibrant / fundamental / significant". No em dashes.
