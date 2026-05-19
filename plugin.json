@@ -4,7 +4,7 @@
   "description": "Generate branded blog cover images. 3-concept exploration → user picks → subagent review (optional Codex adversarial pass).",
   "author": "Mohamed Sherif",
   "license": "MIT",
-  "homepage": "https://github.com/mohamedsherif/blog-cover-skill",
+  "homepage": "https://github.com/MohamedSherifNoureldin/blog-cover-skill",
   "skills": [
     {
       "name": "blog-cover",

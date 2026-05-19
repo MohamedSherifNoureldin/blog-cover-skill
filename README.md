@@ -26,7 +26,7 @@ claude plugins install blog-cover
 ### From source
 
 ```bash
-git clone https://github.com/mohamedsherif/blog-cover-skill ~/.claude/skills/blog-cover
+git clone https://github.com/MohamedSherifNoureldin/blog-cover-skill ~/.claude/skills/blog-cover
 cd ~/.claude/skills/blog-cover
 npm install
 ```

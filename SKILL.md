@@ -177,19 +177,29 @@ Verify all three PNGs exist. If any failed, fix the offending HTML and re-render
 
 ## Step 6 — Picker UI
 
-Read all three PNGs into the conversation using Read so the user sees them inline. Label them A, B, C clearly above each.
+**Critical: the user must SEE the rendered PNGs clearly to evaluate them.** Don't just describe the concepts in text. Do this exactly:
 
-Then use AskUserQuestion:
+1. Emit a clear text marker before each PNG:
+   ```
+   ### Concept A — {one-line archetype + metaphor description}
+   ```
+   Then immediately call Read on `.blog-covers/.concepts/{slug}-a.png`. Repeat for B and C.
 
-```
-Which concept do you want to refine?
-A) [one-line description of concept A]
-B) [one-line description of concept B]
-C) [one-line description of concept C]
-D) None — generate 3 new concepts
-```
+   The Read tool renders the image inline. Each concept gets its own visible header + full-size image. Do NOT batch them in a single Read call.
 
-If the user picks D, regenerate 3 fresh concepts (cap at 3 total retry rounds before insisting the user pick). Each retry round should explicitly diverge from prior rejected concepts — pass the rejected thumbnails in the prompt as "do not repeat these".
+2. After all three are displayed, use AskUserQuestion:
+
+   ```
+   Which concept do you want to refine?
+   A) {archetype}: {one-line description of A's visual}
+   B) {archetype}: {one-line description of B's visual}
+   C) {archetype}: {one-line description of C's visual}
+   D) None — generate 3 new concepts
+   ```
+
+   The label MUST name the archetype (e.g., "Centered hero", "Grid matrix") so the user picks based on layout AND content, not just content.
+
+3. If the user picks D, regenerate 3 fresh concepts (cap at 3 total retry rounds before insisting the user pick). Each retry round should explicitly diverge from prior rejected concepts — pass the rejected thumbnails AND a list of rejected archetypes in the prompt as "do not repeat these archetypes or these visual approaches".
 
 ---
 

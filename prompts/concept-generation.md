@@ -48,7 +48,23 @@ Each must be a complete, self-contained HTML page that renders into a {{CANVAS_W
 
 ## Rules
 
-1. **Three CONCEPTS, not three variations**. A concept is a distinct visual metaphor + layout. Don't ship "the same idea in three colors". Examples of distinct concepts: artifact-as-evidence (real email mockup), big-data-point hero (one giant number with strong supporting visual), narrative-diagram (timeline, kill chain, org tree), specimen-comparison (before vs after), tool-of-the-trade (the attacker's instrument shown literally).
+1. **Three CONCEPTS using three DIFFERENT LAYOUT ARCHETYPES**. This is the most-violated rule. The temptation is to make 3 concepts that all use "text-left / visual-right" with different content. That is one concept, three times. Forbidden.
+
+   Pick 3 archetypes from the list below — the chosen 3 must be from 3 DIFFERENT rows:
+
+   | Archetype | Description |
+   |---|---|
+   | **Centered hero** | Single dominant element centered on canvas, minimal supporting text. Symmetrical. |
+   | **Two-pane split** | Left text / right visual (or vice versa). The default; use sparingly. |
+   | **Full-bleed artifact** | One large artifact (mockup, screenshot, photo) fills 70%+ of canvas, copy overlaid in negative space. |
+   | **Stacked vertical** | Headline top, visual middle, supporting bottom. Three horizontal bands. |
+   | **Diagonal / asymmetric** | Off-axis composition, content flows on a diagonal or extreme corner-to-corner. |
+   | **Grid / matrix** | Multi-cell composition: 2×2, 3×3, or list of N rows. Each cell carries a unit of info. |
+   | **Edge-anchored / margin** | All content in 2-3 edges (top + left, or bottom row); large negative-space center holds a single focal element. |
+
+   Then within each chosen archetype, pick a distinct visual METAPHOR (artifact-as-evidence, big-data-point hero, narrative-diagram, specimen-comparison, tool-of-the-trade, etc.).
+
+   Before you write a single line of HTML for concept B, look at concept A's layout and ask: "is the SHAPE of this composition different, not just the content?" If no, restart.
 
 2. **The visual must do work**. A title alone with a decorative background does not count as a concept. Every concept must have a visual element that carries information, not just atmosphere.
 

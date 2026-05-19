@@ -7,7 +7,7 @@
   "author": "Mohamed Sherif",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mohamedsherif/blog-cover-skill"
+    "url": "https://github.com/MohamedSherifNoureldin/blog-cover-skill"
   },
   "bin": {
     "blog-cover-render": "./scripts/render.mjs",
