@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Drift — Concept C</title>
+<link rel="stylesheet" href="_shared.css">
+<style>
+  /* CONCEPT C: Artifact-as-evidence.
+     Show a mock multisig governance proposal UI — the exact kind of UI
+     the signers approved. The artifact IS the lesson: nothing about this
+     proposal would have looked wrong to a trained signer. */
+
+  .canvas { background: #050706; }
+
+  .topbar {
+    position: absolute; top: 80px; left: 100px; right: 100px;
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 15px;
+    color: var(--muted); letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .topbar .red { color: var(--warning); }
+  .topbar .red::before { content: '◉'; margin-right: 12px; }
+
+  .left-pane {
+    position: absolute; top: 200px; left: 100px; width: 980px;
+    display: flex; flex-direction: column; justify-content: center;
+    bottom: 180px;
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: 16px; color: var(--muted);
+    letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 28px;
+  }
+  .title {
+    font-family: var(--display); font-weight: 800;
+    font-size: 140px; line-height: 0.92; letter-spacing: -0.04em;
+    color: var(--text);
+  }
+  .title .acc { color: var(--accent); }
+  .sub {
+    font-family: var(--display); font-weight: 400; font-size: 30px;
+    color: var(--muted-strong); line-height: 1.45; margin-top: 40px;
+    max-width: 880px;
+  }
+  .sub em { font-style: normal; color: var(--text); font-weight: 600; }
+
+  .source-line {
+    margin-top: 44px;
+    font-family: var(--mono); font-size: 16px; color: var(--muted);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    border-left: 2px solid var(--accent); padding-left: 18px;
+  }
+
+  /* Right: mock governance proposal UI card */
+  .gov-card {
+    position: absolute; top: 200px; right: 100px;
+    width: 940px; height: 860px;
+    background: #0d100e;
+    border-radius: 14px;
+    border: 1px solid rgba(0,230,118,0.18);
+    box-shadow: 0 30px 100px rgba(0,0,0,0.7), 0 0 60px rgba(0,230,118,0.10);
+    overflow: hidden;
+  }
+  .gov-titlebar {
+    background: #14181b; padding: 18px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .gov-titlebar .name {
+    font-family: var(--mono); font-size: 14px; color: var(--muted-strong);
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .gov-titlebar .status {
+    font-family: var(--mono); font-size: 12px; color: var(--accent);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    border: 1px solid rgba(0,230,118,0.4); padding: 4px 12px; border-radius: 3px;
+  }
+
+  .gov-body { padding: 40px 44px; }
+  .gov-eyebrow {
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 18px;
+  }
+  .gov-proposal {
+    font-family: var(--display); font-size: 38px; font-weight: 700;
+    color: white; line-height: 1.25; letter-spacing: -0.012em;
+    margin-bottom: 28px;
+  }
+  .gov-desc {
+    font-family: var(--display); font-size: 20px; font-weight: 400;
+    color: rgba(255,255,255,0.65); line-height: 1.55; margin-bottom: 36px;
+  }
+
+  .signers {
+    margin: 32px 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 24px;
+  }
+  .signers-title {
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 18px;
+  }
+  .signer-row {
+    display: flex; align-items: center; gap: 14px; padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .signer-row:last-child { border-bottom: 0; }
+  .signer-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #2a4d3a, #1a2d28);
+    flex-shrink: 0;
+  }
+  .signer-name {
+    font-family: var(--display); font-size: 18px; font-weight: 600;
+    color: white; flex: 1;
+  }
+  .signer-addr {
+    font-family: var(--mono); font-size: 14px;
+    color: var(--muted-strong);
+  }
+  .signer-check {
+    color: var(--accent); font-size: 22px; margin-left: 14px;
+  }
+
+  .approve-btn {
+    margin-top: 28px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent); color: #000;
+    padding: 18px; border-radius: 6px;
+    font-family: var(--display); font-size: 22px; font-weight: 700;
+    letter-spacing: -0.01em;
+    box-shadow: 0 0 30px rgba(0,230,118,0.4);
+  }
+
+  .brand-logo { bottom: 60px; left: 100px; }
+  .brand-url { bottom: 68px; right: 100px; }
+</style></head>
+<body>
+<div class="canvas">
+
+  <div class="topbar">
+    <span class="red">Drift Protocol · April 2026 · Active Lesson</span>
+    <span>Source: post-mortem · DPRK attribution</span>
+  </div>
+
+  <div class="left-pane">
+    <div>
+      <div class="eyebrow">What a $285M social engineering attack looked like</div>
+      <div class="title">
+        Nothing here<br>
+        looked <span class="acc">wrong.</span>
+      </div>
+      <div class="sub">
+        Six months of relationship-building made this proposal arrive from a
+        <em>trusted source</em>, at the right moment, in the right format.
+        The signers approved it. The drain took twelve minutes.
+      </div>
+      <div class="source-line">$285M lost · zero code exploits · governance trained, not broken</div>
+    </div>
+  </div>
+
+  <div class="gov-card">
+    <div class="gov-titlebar">
+      <div class="name">Multisig Governance · Proposal #847</div>
+      <div class="status">Ready to Sign</div>
+    </div>
+    <div class="gov-body">
+      <div class="gov-eyebrow">Routing change · treasury operations</div>
+      <div class="gov-proposal">
+        Update treasury beneficiary address for emergency liquidity rotation
+      </div>
+      <div class="gov-desc">
+        Per discussion with the bridge partner. Standard procedure. New address
+        verified by Operations. Effective immediately on approval.
+      </div>
+
+      <div class="signers">
+        <div class="signers-title">Required signatures (5 of 7)</div>
+        <div class="signer-row">
+          <div class="signer-avatar"></div>
+          <div class="signer-name">Signer · Operations Lead</div>
+          <div class="signer-addr">0x4f…a82e</div>
+          <div class="signer-check">✓</div>
+        </div>
+        <div class="signer-row">
+          <div class="signer-avatar"></div>
+          <div class="signer-name">Signer · Engineering</div>
+          <div class="signer-addr">0xd1…c14b</div>
+          <div class="signer-check">✓</div>
+        </div>
+        <div class="signer-row">
+          <div class="signer-avatar"></div>
+          <div class="signer-name">Signer · Treasury</div>
+          <div class="signer-addr">0x86…f307</div>
+          <div class="signer-check">✓</div>
+        </div>
+        <div class="signer-row">
+          <div class="signer-avatar"></div>
+          <div class="signer-name">Signer · Strategy</div>
+          <div class="signer-addr">0x29…1d44</div>
+          <div class="signer-check">✓</div>
+        </div>
+        <div class="signer-row">
+          <div class="signer-avatar"></div>
+          <div class="signer-name">Signer · You</div>
+          <div class="signer-addr">0xa5…b9e8</div>
+          <div class="signer-check" style="color: var(--muted)">○</div>
+        </div>
+      </div>
+
+      <div class="approve-btn">Sign &amp; Approve</div>
+    </div>
+  </div>
+
+  <div class="brand-logo">
+    <svg viewBox="0 0 202 202"><path d="M100.94 0.0996094H201.58V201.38L100.94 100.74V0.0996094Z" fill="white"/><path d="M100.94 201.38H0.299805V0.0996094L100.94 100.74V201.38Z" fill="white"/></svg>
+    <span class="wordmark">NexGuards</span>
+  </div>
+  <div class="brand-url">nexguards.com/blog</div>
+
+</div>
+</body></html>

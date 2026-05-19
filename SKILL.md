@@ -62,14 +62,21 @@ If neither and no arg was passed, use AskUserQuestion to ask whether they want t
 
 If `--interactive` was passed, jump straight to Step 2c. Otherwise:
 
-### 2a. Waterfall via `extract-brand.mjs`
+### 2a. Waterfall via `extract-brand.mjs` and `extract-palette.mjs`
 
-Run:
+Step 1 — try the structured-source waterfall:
 ```bash
 node {skill_root}/scripts/extract-brand.mjs "$(pwd)"
 ```
 
 Parse the JSON. The `source` field tells you what was found: `design.md`, `brand.md`, `tailwind+css`, or `none`.
+
+Step 2 — if `source === "none"` AND the user provided a reference image path (via prompt or flag), run palette extraction as the 4th waterfall fallback:
+```bash
+node {skill_root}/scripts/extract-palette.mjs <image-path>
+```
+
+This returns dominant colors + a `suggested` block with `primary_bg / accent / text / muted`. Use these as starting values when you fall through to interactive bootstrap (Step 2c) — pre-populate the answers so the user only confirms/edits rather than typing from scratch.
 
 ### 2b. Decide whether the result is sufficient
 
@@ -190,12 +197,19 @@ If the user picks D, regenerate 3 fresh concepts (cap at 3 total retry rounds be
 
 When the user picks A/B/C:
 1. Copy the winning HTML to `.blog-covers/{slug}.html`
-2. Delete the other two concepts from `.blog-covers/.concepts/`
-3. Re-render the final PNG:
+2. **CRITICAL: rewrite the stylesheet path.** The concept HTMLs in `.concepts/` reference `../_shared.css` (one level up). The promoted HTML at `.blog-covers/{slug}.html` is in the same directory as `_shared.css`, so the path must become `_shared.css`. Use:
+   ```bash
+   sed -i '' 's|href="../_shared.css"|href="_shared.css"|' .blog-covers/{slug}.html
+   ```
+   (or the equivalent on non-macOS: `sed -i 's|href="../_shared.css"|href="_shared.css"|' ...`)
+   
+   Skipping this step ships a cover with no CSS loaded — browser default white background bleeds through and the design breaks. This bug doesn't appear in the concept previews (where the relative path resolves correctly) and only manifests after promote.
+3. Delete the other two concepts from `.blog-covers/.concepts/`
+4. Re-render the final PNG:
    ```bash
    node {skill_root}/scripts/render.mjs .blog-covers/{slug}.html .blog-covers/{slug}.png {w} {h}
    ```
-4. Show the final PNG to the user via Read.
+5. Show the final PNG to the user via Read. **Verify the brand colors actually rendered** — if you see the wrong background color, the CSS path rewrite was missed.
 
 ---
 
