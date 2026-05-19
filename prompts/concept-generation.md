@@ -56,7 +56,11 @@ Each must be a complete, self-contained HTML page that renders into a {{CANVAS_W
 
 4. **Readability check**: imagine the cover as a 1200×675 LinkedIn link preview. Anything <11px mono in the design will be sub-7px there. Default mono caption size: 14-16px. Default body: 24-30px. Hero numbers: 80-280px depending on layout.
 
-5. **No overlapping elements**. Position absolutely; use z-index when needed; verify nothing collides with the brand row at the bottom.
+5. **No overlapping elements**. Position absolutely; use z-index when needed. Before emitting each HTML, mentally trace every `position: absolute` element's bounding box and verify they don't collide:
+   - Headline text at large font sizes (140px+) often overflows the declared `width:` of its container — give it 80-120px of clearance from any side-panel element
+   - Side panels (cards, illustrations) on the right at `right: 100px; width: 920px` start at canvas x=1220 — left-pane content must end by x=1100
+   - The brand row (logo bottom-left, URL bottom-right) sits in the bottom 120px — no other element should encroach
+   - SVG illustrations with `overflow: visible` can leak past their declared size — check stroke/glow filter widths
 
 6. **No AI vocabulary in the cover text**: no "delve", "robust", "comprehensive", "nuanced", "pivotal", "landscape", "tapestry", "underscore", "foster", "showcase", "intricate", "vibrant", "fundamental", "significant". No em dashes.
 
