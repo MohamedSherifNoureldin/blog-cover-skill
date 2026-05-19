@@ -177,29 +177,59 @@ Verify all three PNGs exist. If any failed, fix the offending HTML and re-render
 
 ## Step 6 — Picker UI
 
-**Critical: the user must SEE the rendered PNGs clearly to evaluate them.** Don't just describe the concepts in text. Do this exactly:
+**Critical: the user must actually SEE the PNGs in their OS image viewer.** The Read tool displays images to YOU (the assistant) but not necessarily to the user — depending on their UI it may or may not render inline, and even when it does they can't manipulate, zoom, or save them. You MUST open the files in the user's native image viewer.
 
-1. Emit a clear text marker before each PNG:
-   ```
-   ### Concept A — {one-line archetype + metaphor description}
-   ```
-   Then immediately call Read on `.blog-covers/.concepts/{slug}-a.png`. Repeat for B and C.
+Do this exactly:
 
-   The Read tool renders the image inline. Each concept gets its own visible header + full-size image. Do NOT batch them in a single Read call.
+### 6a. Open all 3 PNGs in the user's OS viewer
 
-2. After all three are displayed, use AskUserQuestion:
+Detect platform and use the appropriate open command:
 
-   ```
-   Which concept do you want to refine?
-   A) {archetype}: {one-line description of A's visual}
-   B) {archetype}: {one-line description of B's visual}
-   C) {archetype}: {one-line description of C's visual}
-   D) None — generate 3 new concepts
-   ```
+```bash
+case "$(uname -s)" in
+  Darwin)  OPEN=open ;;
+  Linux)   OPEN=xdg-open ;;
+  MINGW*|MSYS*|CYGWIN*) OPEN=start ;;
+  *)       OPEN=open ;;
+esac
 
-   The label MUST name the archetype (e.g., "Centered hero", "Grid matrix") so the user picks based on layout AND content, not just content.
+$OPEN .blog-covers/.concepts/{slug}-a.png
+$OPEN .blog-covers/.concepts/{slug}-b.png
+$OPEN .blog-covers/.concepts/{slug}-c.png
+```
 
-3. If the user picks D, regenerate 3 fresh concepts (cap at 3 total retry rounds before insisting the user pick). Each retry round should explicitly diverge from prior rejected concepts — pass the rejected thumbnails AND a list of rejected archetypes in the prompt as "do not repeat these archetypes or these visual approaches".
+On macOS, this pops all three open in Preview at full resolution. On Linux/Windows, the default image viewer. The user can see them, zoom, switch between, take their time.
+
+### 6b. Also tell the user the absolute paths
+
+Even with `open` succeeding, print the absolute paths so the user can re-open later, share, or inspect:
+
+```
+Concepts open in Preview. Paths:
+  A: /absolute/path/.blog-covers/.concepts/{slug}-a.png  (archetype: centered hero)
+  B: /absolute/path/.blog-covers/.concepts/{slug}-b.png  (archetype: stacked vertical)
+  C: /absolute/path/.blog-covers/.concepts/{slug}-c.png  (archetype: edge-anchored)
+```
+
+### 6c. Also do `Read` on each for your own reference
+
+After opening for the user, call Read on each PNG so you can also see them and write accurate one-line descriptions for the picker labels. The Read is for YOU; the `open` is for the USER. Do not skip either.
+
+### 6d. AskUserQuestion to pick
+
+```
+Which concept do you want to refine?
+A) {archetype}: {one-line description}
+B) {archetype}: {one-line description}
+C) {archetype}: {one-line description}
+D) None — generate 3 new concepts
+```
+
+The label MUST name the archetype so the user picks based on layout AND content.
+
+### 6e. If user picks D
+
+Regenerate 3 fresh concepts (cap at 3 total retry rounds). Each retry must explicitly diverge from prior rejected concepts: pass both the rejected thumbnails AND a list of rejected archetypes to the prompt as "do not repeat these archetypes or these visual approaches". After regenerating, repeat 6a–6d (open them in viewer, Read, ask).
 
 ---
 
@@ -219,7 +249,12 @@ When the user picks A/B/C:
    ```bash
    node {skill_root}/scripts/render.mjs .blog-covers/{slug}.html .blog-covers/{slug}.png {w} {h}
    ```
-5. Show the final PNG to the user via Read. **Verify the brand colors actually rendered** — if you see the wrong background color, the CSS path rewrite was missed.
+5. Open the final PNG in the user's OS viewer using the same platform-detection logic from Step 6a:
+   ```bash
+   case "$(uname -s)" in Darwin) OPEN=open;; Linux) OPEN=xdg-open;; *) OPEN=start;; esac
+   $OPEN .blog-covers/{slug}.png
+   ```
+   Also call Read on the PNG so you can verify it for the user. **Verify the brand colors actually rendered** — if you see the wrong background color, the CSS path rewrite (step 2 above) was missed.
 
 ---
 
@@ -290,12 +325,19 @@ If D: delete `.blog-covers/{slug}.{html,png}`, return to Step 4.
 
 ## Step 10 — Done
 
-Report final artifacts:
+Open the final PNG one more time in the user's OS viewer (in case they closed it during the review loop):
+```bash
+case "$(uname -s)" in Darwin) OPEN=open;; Linux) OPEN=xdg-open;; *) OPEN=start;; esac
+$OPEN .blog-covers/{slug}.png
+```
+
+Report final artifacts with absolute paths the user can click:
 
 ```
-Cover ready:
-  PNG: .blog-covers/{slug}.png
-  HTML source: .blog-covers/{slug}.html (kept for hand-tweaking — re-run `node {skill_root}/scripts/render.mjs ...` if you edit it)
+Cover ready and open in your default viewer.
+
+  PNG:  /absolute/path/.blog-covers/{slug}.png
+  HTML: /absolute/path/.blog-covers/{slug}.html (kept for hand-tweaking — re-run `node {skill_root}/scripts/render.mjs ...` if you edit it)
 
 Final rating: N/10 (from review pass)
 ```
