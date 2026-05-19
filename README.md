@@ -26,9 +26,23 @@ claude plugins install blog-cover
 ### From source
 
 ```bash
-git clone https://github.com/MohamedSherifNoureldin/blog-cover-skill ~/.claude/skills/blog-cover
-cd ~/.claude/skills/blog-cover
+git clone https://github.com/MohamedSherifNoureldin/blog-cover-skill ~/.claude/plugins/blog-cover-skill
+cd ~/.claude/plugins/blog-cover-skill
 npm install
+```
+
+The repo follows the official Claude plugin layout:
+```
+blog-cover-skill/
+├── .claude-plugin/plugin.json    ← plugin metadata
+├── skills/blog-cover/
+│   ├── SKILL.md                  ← orchestrator
+│   ├── scripts/                  ← render.mjs, extract-brand, extract-palette, init-design
+│   ├── references/               ← concept-generation, review prompts
+│   ├── assets/                   ← DESIGN.md.template, _shared.css.template
+│   └── evals/evals.json          ← test cases
+├── examples/                     ← canonical reference brands
+├── README.md / LICENSE / package.json
 ```
 
 You also need Puppeteer in any repo where you'll use the skill:
@@ -152,11 +166,15 @@ You see all three rendered at full resolution, pick one (A/B/C), or ask for 3 mo
 
 ## How review works
 
-After you pick a concept, a **fresh subagent with no conversation context** reviews it. It rates 1-10 and lists every issue with a concrete fix. You decide which to apply.
+After you pick a concept, a **fresh subagent with no conversation context** reviews it. It rates 1-10 and lists EVERY issue with a concrete fix (not just top 3). You decide which to apply.
 
 With `--codex`, a second adversarial review runs via OpenAI Codex (different model, different perspective). Cross-model agreement is highlighted automatically.
 
 The skill never auto-applies fixes. You ship what you want shipped.
+
+## Optional: /frontend-design delegation
+
+If you have Anthropic's `/frontend-design` skill installed, blog-cover detects it at runtime and offers to delegate concept generation to that specialist for higher-fidelity designs. You can decline and use the in-skill prompt at any time. The in-skill prompt works perfectly without `/frontend-design`.
 
 ---
 

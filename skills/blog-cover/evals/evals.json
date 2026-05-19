@@ -1,0 +1,33 @@
+{
+  "skill_name": "blog-cover",
+  "evals": [
+    {
+      "id": 1,
+      "name": "markdown-with-design-md",
+      "prompt": "I just wrote a blog post about how AI made phishing emails 14x more common since ChatGPT shipped. The draft is at blog-content/03-ai-phishing-attacks.md. Generate a hero cover image for it. We have a DESIGN.md in the repo with our brand colors.",
+      "expected_output": "Skill detects markdown mode, parses DESIGN.md for brand, generates 3 concept HTMLs using 3 distinct layout archetypes, renders them at 2240x1260, opens all 3 in the user's OS image viewer (open/xdg-open/start), asks user to pick, promotes the winner with CSS path rewrite, runs unbiased subagent review listing ALL issues, surfaces fixes for user to accept/reject (no auto-apply).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "free-text-prompt-no-design-file",
+      "prompt": "/blog-cover \"Five ways CISOs are getting BEC attacks wrong in 2026\" --codex",
+      "expected_output": "Skill detects free-text mode (no markdown path), falls through brand-discovery waterfall (DESIGN.md → BRAND.md → Tailwind/CSS → interactive), generates 3 concept HTMLs with archetype diversity, opens them in OS viewer, asks user to pick + missing brand fields, runs BOTH the Claude subagent review AND Codex adversarial review (because --codex flag set), surfaces cross-model agreement analysis with all issues from both reviewers.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "interactive-flag-first-run",
+      "prompt": "I want to generate a blog cover for a post I haven't written yet. Use --interactive to walk me through the brand setup. The post will be about ransomware-specific awareness training.",
+      "expected_output": "Skill detects --interactive flag, skips brand auto-discovery, runs init-design.mjs flow asking for brand_name, url, logo, colors, fonts, voice, visual preferences. Writes a fresh DESIGN.md to the repo root. Then proceeds through normal 3-concept flow. The interactive answers are saved so subsequent invocations don't re-ask.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "regenerate-existing-cover",
+      "prompt": "/blog-cover blog-content/07-drift-protocol.md  — the cover I generated last week needs a refresh, the design feels stale",
+      "expected_output": "Skill detects an existing .blog-covers/{slug}.html and .blog-covers/{slug}.png, warns 'Already exists. Regenerate? [Y/n]'. On Y, runs the full 3-concept flow again, passing the existing cover as 'do not repeat this approach' context. New cover is distinctly different from the prior one (different archetype). Old HTML/PNG kept in .blog-covers/.archive/ for rollback.",
+      "files": []
+    }
+  ]
+}

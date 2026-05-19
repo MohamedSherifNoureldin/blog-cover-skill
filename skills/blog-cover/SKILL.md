@@ -1,6 +1,6 @@
 ---
 name: blog-cover
-description: Generate a branded blog cover image. Auto-discovers brand from DESIGN.md/BRAND.md/Tailwind/CSS or runs interactive bootstrap. Renders 3 concepts at 2240x1260, user picks one, optional unbiased subagent + Codex review.
+description: Generate branded blog cover images, hero images, OpenGraph cards, social-share images, or any branded marketing artwork. Use this skill whenever the user mentions blog covers, post hero images, OG images, social-share graphics, LinkedIn link previews, Twitter cards, or wants visual artwork for a blog post / article / landing page — even if they don't explicitly say "blog cover". Auto-discovers brand from DESIGN.md, BRAND.md, Tailwind config, or :root CSS variables, with interactive bootstrap as fallback. Generates 3 visually distinct concept HTMLs using different layout archetypes (centered hero, two-pane, full-bleed artifact, stacked vertical, diagonal asymmetric, grid matrix, edge-anchored), renders them at any size (default 2240x1260), opens them in the user's OS image viewer for visual comparison, lets the user pick one, then runs a fresh-eyes unbiased subagent review that lists every issue. Optional --codex flag adds an adversarial OpenAI Codex second-opinion review with cross-model agreement analysis.
 ---
 
 # /blog-cover
@@ -104,7 +104,7 @@ Use AskUserQuestion to gather:
 9. (Optional) Visual preferences / things to avoid
 10. (Optional) Consistency posture: `consistent` / `varied` / `neutral` (default neutral)
 
-Write the answers to `./DESIGN.md` using the template at `{skill_root}/templates/DESIGN.md.template`. Tell the user the file was written so they can hand-edit later.
+Write the answers to `./DESIGN.md` using the template at `{skill_root}/assets/DESIGN.md.template`. Tell the user the file was written so they can hand-edit later.
 
 ---
 
@@ -129,7 +129,26 @@ The free-text arg IS the topic. Use AskUserQuestion to gather:
 
 ## Step 4 — Concept generation
 
-Read `{skill_root}/prompts/concept-generation.md` as your template. Fill in:
+### 4a. Optional: delegate to /frontend-design if installed
+
+Check whether the user has the `/frontend-design` skill installed (it's an official Anthropic skill specialized in distinctive, production-grade UI design — strictly better at exotic visual treatments than a general prompt).
+
+Detect via:
+```bash
+# Search common skill install paths
+test -d ~/.claude/skills/frontend-design && echo "FRONTEND_DESIGN_OK" || \
+find ~/.claude/plugins/cache -maxdepth 6 -name "frontend-design" -type d 2>/dev/null | head -1
+```
+
+If `/frontend-design` IS available, you have two options:
+1. **Delegate (recommended for visually-distinctive brands)**: Invoke `/frontend-design` 3 times with the concept-generation brief as context, requesting one distinct archetype each time. Each invocation must specify a different layout archetype from the 7 listed in `references/concept-generation.md`. This generally produces higher-fidelity, more distinctive concepts than the default in-skill path.
+2. **Use the in-skill path (default)**: skip delegation, proceed to 4b. This is what runs when `/frontend-design` is absent OR when the brand wants tightly-constrained corporate-feeling designs (delegation produces wilder design choices that may not fit conservative brands).
+
+Surface this choice to the user via AskUserQuestion ONLY if the brand's `consistency` field is `varied` or `neutral`. If `consistency: consistent`, default to the in-skill path without asking — the user has signaled they want predictable output.
+
+### 4b. In-skill concept generation
+
+Read `{skill_root}/references/concept-generation.md` as your template. Fill in:
 - All brand fields from Step 2
 - Topic, angle, key data from Step 3
 - Canvas size (default 2240x1260 or from `--size` / `canvas_size`)
@@ -262,7 +281,7 @@ When the user picks A/B/C:
 
 ### 8a. Claude unbiased subagent (always runs)
 
-Spawn an Agent with `subagent_type: general-purpose`. The prompt is the contents of `{skill_root}/prompts/review.md` with the placeholders filled in. The subagent has no prior conversation context — it's a fresh perspective.
+Spawn an Agent with `subagent_type: general-purpose`. The prompt is the contents of `{skill_root}/references/review.md` with the placeholders filled in. The subagent has no prior conversation context — it's a fresh perspective.
 
 The subagent must:
 - Rate the cover 1-10

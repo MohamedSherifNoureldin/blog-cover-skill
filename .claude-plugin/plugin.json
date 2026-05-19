@@ -1,0 +1,8 @@
+{
+  "name": "blog-cover",
+  "description": "Generate branded blog cover images via 3-concept exploration + unbiased subagent review",
+  "author": {
+    "name": "Mohamed Sherif"
+  },
+  "license": "MIT"
+}

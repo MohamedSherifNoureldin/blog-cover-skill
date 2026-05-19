@@ -10,12 +10,14 @@
     "url": "https://github.com/MohamedSherifNoureldin/blog-cover-skill"
   },
   "bin": {
-    "blog-cover-render": "./scripts/render.mjs",
-    "blog-cover-init": "./scripts/init-design.mjs"
+    "blog-cover-render": "./skills/blog-cover/scripts/render.mjs",
+    "blog-cover-init": "./skills/blog-cover/scripts/init-design.mjs"
   },
   "scripts": {
-    "render": "node scripts/render.mjs",
-    "init": "node scripts/init-design.mjs"
+    "render": "node skills/blog-cover/scripts/render.mjs",
+    "init": "node skills/blog-cover/scripts/init-design.mjs",
+    "extract-brand": "node skills/blog-cover/scripts/extract-brand.mjs",
+    "extract-palette": "node skills/blog-cover/scripts/extract-palette.mjs"
   },
   "dependencies": {
     "puppeteer": "^23.0.0",
