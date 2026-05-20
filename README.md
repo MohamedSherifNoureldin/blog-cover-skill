@@ -10,7 +10,7 @@ Run it with:
 /blog-cover path/to/post.md
 ```
 
-The skill renders three HTML cover options, opens them in your image viewer, and saves the chosen one to `.blog-covers/`. An optional review pass returns specific fix suggestions before you ship.
+The skill renders three HTML cover options, opens them in your image viewer, and saves the chosen one to `.blog-covers/`. A review pass then suggests fixes you can accept or skip.
 
 ---
 
@@ -24,13 +24,13 @@ From inside Claude Code:
 /reload-plugins
 ```
 
-The first `/blog-cover` run prompts to install Puppeteer in the plugin directory (~300MB, one-time). If it succeeds, future runs reuse it.
+The first `/blog-cover` run prompts to install Puppeteer in the plugin directory (~300MB, one-time).
 
 ## Requirements
 
 - **Node.js ≥ 18** (install from [nodejs.org](https://nodejs.org), `brew install node`, or `apt install nodejs`).
-- **Network access on first run** for the Puppeteer download and Google Fonts CDN.
-- **Optional**: the `codex` CLI for the `--codex` flag. Without it, `--codex` is a no-op.
+- **Network access** for the first Puppeteer install and for any cover that loads Google Fonts.
+- **Optional**: the `codex` CLI for the `--codex` flag. If missing, the skill warns once and skips the Codex review; everything else still runs.
 - **Optional**: `@google/design.md` CLI for the WCAG lint step, auto-fetched via `npx`.
 
 ## Usage
@@ -44,7 +44,7 @@ The first `/blog-cover` run prompts to install Puppeteer in the plugin directory
 | `--codex` | Run a second review via the OpenAI Codex CLI and report overlapping findings. |
 | `--interactive` | Skip brand auto-discovery and ask every brand question. |
 | `--size WxH` | Override canvas size for this invocation (default `2240x1260`). |
-| `--quick` | Skip user-prompt gates. Auto-pick the strongest concept and skip the fix-application step. For batch runs. |
+| `--quick` | Skip all prompts. A subagent picks one of the three concepts, the review still runs, and any suggested fixes are skipped. Intended for batch runs. |
 | `--archetype <name>` | Skip the 3-concept exploration and generate one concept in the named archetype. Valid: `centered-hero`, `two-pane-split`, `full-bleed-artifact`, `stacked-vertical`, `diagonal-asymmetric`, `grid-matrix`, `edge-anchored`. |
 
 ## Output
@@ -54,7 +54,7 @@ The first `/blog-cover` run prompts to install Puppeteer in the plugin directory
 ├── _shared.css         brand variables shared by all covers
 ├── my-post.html        editable HTML source
 ├── my-post.png         final cover
-└── .concepts/          throwaway 3-concept exploration (auto-gitignored)
+└── .concepts/          temporary concept files (added to .gitignore if you have one)
 ```
 
 ## DESIGN.md
@@ -106,7 +106,7 @@ See the [Google spec](https://github.com/google-labs-code/design.md) for the ful
 
 ## Concept generation
 
-Three concepts, each using a different layout archetype and one visual approach picked to fit the post. The visual options span data-led layouts, narrative diagrams, before/after comparisons, literal subject imagery, and quote-led designs. The three are rendered at full resolution and opened in your image viewer. You pick one of three, or ask for three more (capped at three retry rounds).
+The skill generates three concepts using different layout archetypes, renders them at full resolution, and opens them in your image viewer. Pick one, or ask for another round (max three rounds).
 
 ## Review
 
@@ -114,7 +114,7 @@ A separate review pass checks the selected cover and returns specific fix sugges
 
 ## /frontend-design integration
 
-If Anthropic's `/frontend-design` skill is installed, blog-cover can offer it as an alternate generation path. You can skip it.
+If Anthropic's `/frontend-design` skill is installed, blog-cover offers it as an alternate generation path.
 
 ## Hand-tweaking
 
