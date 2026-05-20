@@ -1,6 +1,6 @@
 {
   "name": "blog-cover",
-  "description": "Generate branded blog cover images via 3-concept exploration + unbiased subagent review",
+  "description": "Generate branded blog cover images. Reads Google Labs DESIGN.md spec (with gstack legacy + tailwind/CSS fallbacks). 3-concept exploration + unbiased subagent review.",
   "author": {
     "name": "Mohamed Sherif"
   },

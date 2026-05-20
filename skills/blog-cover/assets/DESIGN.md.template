@@ -1,39 +1,86 @@
 ---
-brand_name: "{{BRAND_NAME}}"
+version: alpha
+name: {{BRAND_NAME}}
+description: {{BRAND_DESCRIPTION}}
+colors:
+  primary: "{{PRIMARY}}"
+  accent: "{{ACCENT}}"
+  background: "{{PRIMARY_BG}}"
+  text: "{{TEXT}}"
+  muted: "{{MUTED}}"
+typography:
+  display-xl:
+    fontFamily: {{DISPLAY_FONT}}
+    fontSize: 96px
+    fontWeight: 800
+    lineHeight: 1.0
+    letterSpacing: "-0.04em"
+  body-md:
+    fontFamily: {{DISPLAY_FONT}}
+    fontSize: 16px
+    fontWeight: 400
+    lineHeight: 1.6
+  label-sm:
+    fontFamily: {{MONO_FONT}}
+    fontSize: 14px
+    fontWeight: 500
+    lineHeight: 1.4
+    letterSpacing: "0.22em"
+rounded:
+  sm: 4px
+  md: 8px
+  lg: 12px
+spacing:
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 32px
 url: "{{URL}}"
 logo: "{{LOGO_PATH}}"
-output_dir: ".blog-covers"
 canvas_size: "2240x1260"
 consistency: "neutral"
+output_dir: ".blog-covers"
 ---
 
-## Palette
+## Overview
 
-- primary_bg: {{PRIMARY_BG}}
-- accent: {{ACCENT}}
-- text: {{TEXT}}
-- muted: {{MUTED}}
-{{EXTRA_PALETTE}}
+{{BRAND_OVERVIEW}}
+
+## Colors
+
+**Primary ({{PRIMARY}}):** {{PRIMARY_RATIONALE}}
+
+**Accent ({{ACCENT}}):** {{ACCENT_RATIONALE}}
+
+**Background ({{PRIMARY_BG}}):** Canvas backdrop. {{BG_RATIONALE}}
 
 ## Typography
 
-- display: "{{DISPLAY_FONT}}", {{DISPLAY_WEIGHTS}}
-- mono: "{{MONO_FONT}}", {{MONO_WEIGHTS}}
-- source: {{FONT_SOURCE}}
+**{{DISPLAY_FONT}}** for headlines and display copy. {{DISPLAY_RATIONALE}}
 
-## Voice / editorial tone
+**{{MONO_FONT}}** for labels, captions, and source citations. {{MONO_RATIONALE}}
 
-{{VOICE_NOTES}}
+## Layout
 
-## Visual preferences
+{{LAYOUT_NOTES}}
 
-{{VISUAL_NOTES}}
+## Do's and Don'ts
 
-## Existing covers (optional, for reference)
+{{DOS_AND_DONTS}}
 
-The skill scans `.blog-covers/*.png` automatically and includes them as
-neutral context when generating new covers. Set `consistency` to:
+---
 
-- `consistent` — new covers should visually match the existing set (same metaphors, same layout family)
-- `varied` — new covers should explicitly avoid repeating prior layouts (anti-template)
-- `neutral` — no enforcement either way (default)
+<!--
+This DESIGN.md follows the Google Labs DESIGN.md specification (alpha):
+https://github.com/google-labs-code/design.md
+
+The top-level frontmatter fields (name, colors, typography, rounded, spacing, components)
+are the official Google spec. The four extra fields below are blog-cover-skill conventions
+read as supplementary configuration:
+  url            — rendered as the bottom-right brand URL on covers
+  logo           — path to logo SVG/PNG
+  canvas_size    — override default cover dimensions (default 2240x1260)
+  consistency    — "consistent" | "varied" | "neutral" (default neutral)
+  output_dir     — override default output location (default .blog-covers)
+-->

@@ -66,50 +66,73 @@ First run prompts you for brand details and writes a `DESIGN.md` so you don't ha
 
 ---
 
-## DESIGN.md
+## DESIGN.md (Google Labs spec)
 
-The skill prefers a `DESIGN.md` at your repo root. Minimal example:
+The skill reads a `DESIGN.md` at your repo root using the official [Google Labs DESIGN.md specification](https://github.com/google-labs-code/design.md) (open-sourced April 21, 2026, Apache 2.0). Generate one with the official CLI: `npx @google/design.md init`, or by hand:
 
 ```markdown
 ---
-brand_name: "Acme Inc"
+version: alpha
+name: Acme Inc
+description: B2B SaaS for fleet operators
+colors:
+  primary: "#0A2540"
+  accent: "#00D924"
+  background: "#FFFFFF"
+  text: "#0A2540"
+typography:
+  display-xl:
+    fontFamily: Inter
+    fontSize: 96px
+    fontWeight: 800
+  body-md:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: 400
+  label-sm:
+    fontFamily: JetBrains Mono
+    fontSize: 14px
+    fontWeight: 500
+rounded:
+  sm: 4px
+  md: 8px
 url: "acme.com/blog"
 logo: "./public/acme-logo.svg"
 canvas_size: "2240x1260"
 consistency: "neutral"
 ---
 
-## Palette
-- primary_bg: #050706
-- accent: #00E676
-- text: #ffffff
-- muted: rgba(255,255,255,0.40)
+## Overview
+Brand personality, target audience, emotional response the UI should evoke.
+
+## Colors
+Palette descriptions with semantic roles.
 
 ## Typography
-- display: "Plus Jakarta Sans", 300/700/800
-- mono: "IBM Plex Mono", 400/500/600
-- source: google_fonts
+Font strategy and usage levels.
 
-## Voice / editorial tone
-B2B, blunt, no marketing fluff. No em dashes.
-Target audience: technical decision-makers.
-
-## Visual preferences
-Avoid: stock 3D faces, generic radial gradients, cliché icon grids.
-Prefer: real artifacts (mockups, terminal frames, chat UIs, diagrams that carry information).
+## Layout / Elevation & Depth / Shapes / Components / Do's and Don'ts
+(All sections optional but should follow this order if present.)
 ```
 
-A `BRAND.md` at the same locations also works (same schema).
+### Fallback waterfall
 
-If neither exists, the skill tries `tailwind.config.{js,ts}` and `:root { --vars }` in `src/index.css` / `app/globals.css`. Failing that, it goes interactive.
+If no Google-spec `DESIGN.md` is present, the skill walks this waterfall:
 
-### Frontmatter fields
+1. **gstack legacy DESIGN.md** (prose-only `## Color` + `## Typography` sections, no YAML frontmatter) — produced by [gstack's](https://github.com/garryslist/gstack) `/design-consultation` skill
+2. **BRAND.md** at repo root, docs/, or .blog-covers/ (treated as gstack-style)
+3. **tailwind.config.{js,ts,mjs,cjs}** color tokens
+4. **`:root { --vars }`** in src/index.css, app/globals.css, etc. (handles shadcn-style bare HSL triplets)
+5. **Interactive bootstrap** — prompts the user, writes a Google-spec DESIGN.md so future invocations are zero-config
+
+### blog-cover-specific frontmatter extras
+
+Top-level Google spec fields are the standard. blog-cover also reads these supplementary fields if present in the frontmatter:
 
 | Field | Required | Default |
 |---|---|---|
-| `brand_name` | yes | — |
-| `url` | yes | — |
-| `logo` | yes | — |
+| `url` | recommended | — (asked interactively if missing) |
+| `logo` | recommended | — (asked interactively if missing) |
 | `canvas_size` | no | `2240x1260` |
 | `output_dir` | no | `.blog-covers` |
 | `consistency` | no | `neutral` |

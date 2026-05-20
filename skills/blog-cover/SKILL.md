@@ -1,6 +1,6 @@
 ---
 name: blog-cover
-description: Generate branded blog cover images, hero images, OpenGraph cards, social-share images, or any branded marketing artwork. Use this skill whenever the user mentions blog covers, post hero images, OG images, social-share graphics, LinkedIn link previews, Twitter cards, or wants visual artwork for a blog post / article / landing page — even if they don't explicitly say "blog cover". Auto-discovers brand from DESIGN.md, BRAND.md, Tailwind config, or :root CSS variables, with interactive bootstrap as fallback. Generates 3 visually distinct concept HTMLs using different layout archetypes (centered hero, two-pane, full-bleed artifact, stacked vertical, diagonal asymmetric, grid matrix, edge-anchored), renders them at any size (default 2240x1260), opens them in the user's OS image viewer for visual comparison, lets the user pick one, then runs a fresh-eyes unbiased subagent review that lists every issue. Optional --codex flag adds an adversarial OpenAI Codex second-opinion review with cross-model agreement analysis.
+description: Generate branded blog cover images, hero images, OpenGraph cards, social-share images, or any branded marketing artwork. Use this skill whenever the user mentions blog covers, post hero images, OG images, social-share graphics, LinkedIn link previews, Twitter cards, or wants visual artwork for a blog post / article / landing page — even if they don't explicitly say "blog cover". Auto-discovers brand from DESIGN.md (Google Labs official spec at github.com/google-labs-code/design.md), with fallback to gstack-legacy DESIGN.md prose format, BRAND.md, Tailwind config, or :root CSS variables, ending with interactive bootstrap. Generates 3 visually distinct concept HTMLs using different layout archetypes (centered hero, two-pane, full-bleed artifact, stacked vertical, diagonal asymmetric, grid matrix, edge-anchored), renders them at any size (default 2240x1260), opens them in the user's OS image viewer for visual comparison, lets the user pick one, then runs a fresh-eyes unbiased subagent review that lists every issue. Optional --codex flag adds an adversarial OpenAI Codex second-opinion review with cross-model agreement analysis.
 ---
 
 # /blog-cover
@@ -69,7 +69,16 @@ Step 1 — try the structured-source waterfall:
 node {skill_root}/scripts/extract-brand.mjs "$(pwd)"
 ```
 
-Parse the JSON. The `source` field tells you what was found: `design.md`, `brand.md`, `tailwind+css`, or `none`.
+Parse the JSON. The `schema` and `source` fields tell you what was found:
+
+| `schema` value | `source` value | Meaning |
+|---|---|---|
+| `google-labs` | `design.md (Google spec)` | Official Google Labs DESIGN.md spec at github.com/google-labs-code/design.md — YAML frontmatter + structured tokens. Preferred. |
+| `gstack` | `design.md (gstack legacy)` | Older gstack-style prose DESIGN.md (no YAML frontmatter, free-form sections). Probably written by gstack's /design-consultation skill. Works fine. |
+| `gstack` | `brand.md (gstack legacy)` | Same as above but in BRAND.md. |
+| `unknown` | `design.md (unknown format)` | DESIGN.md exists but matches neither schema. Surface this to the user — they may have a typo or want to migrate. |
+| `css-tokens` | `tailwind+css` | No DESIGN.md found; colors extracted from tailwind.config + :root CSS vars. |
+| `null` | `none` | Nothing found. Fall through to interactive (Step 2c). |
 
 Step 2 — if `source === "none"` AND the user provided a reference image path (via prompt or flag), run palette extraction as the 4th waterfall fallback:
 ```bash
