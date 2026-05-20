@@ -241,4 +241,6 @@ node ~/.claude/skills/blog-cover/scripts/render.mjs \
 
 ## License
 
-MIT
+Apache 2.0. See [LICENSE](./LICENSE) for the full text and [NOTICE](./NOTICE) for required attribution.
+
+Why Apache 2.0 and not MIT: same practical permissiveness (commercial use, modification, redistribution all allowed) plus an explicit patent grant + patent-retaliation clause, plus alignment with [Google's DESIGN.md spec](https://github.com/google-labs-code/design.md) which is also Apache 2.0.

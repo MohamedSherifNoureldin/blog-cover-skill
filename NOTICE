@@ -1,0 +1,30 @@
+blog-cover-skill
+Copyright 2026 Mohamed Sherif
+
+This product includes software developed by Mohamed Sherif
+(https://github.com/MohamedSherifNoureldin/blog-cover-skill).
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may
+not use this work except in compliance with the License. You may obtain
+a copy of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+---
+
+This product reads files following the Google Labs DESIGN.md specification:
+    https://github.com/google-labs-code/design.md
+The DESIGN.md specification itself is licensed under Apache License 2.0
+by Google LLC. This product does not bundle or redistribute any code from
+the DESIGN.md specification repository.
+
+This product has runtime dependencies that retain their own licenses:
+- puppeteer (Apache 2.0) — https://github.com/puppeteer/puppeteer
+- sharp (Apache 2.0) — https://github.com/lovell/sharp
+- yaml (ISC) — https://github.com/eemeli/yaml
+- gray-matter (MIT) — https://github.com/jonschlinkert/gray-matter
+
+This product optionally invokes the following tools at runtime, which are
+not bundled and retain their own licenses:
+- @google/design.md (linter/exporter for DESIGN.md spec) — invoked via npx
+- @openai/codex (Codex CLI for adversarial review) — invoked if --codex flag is passed

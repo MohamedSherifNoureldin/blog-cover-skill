@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Generate branded blog cover images via Claude Code. 3-concept exploration, subagent review, optional Codex adversarial pass.",
   "type": "module",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Mohamed Sherif",
   "repository": {
     "type": "git",
