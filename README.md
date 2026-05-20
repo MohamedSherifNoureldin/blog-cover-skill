@@ -17,13 +17,32 @@ No auto-commit. No magic. You stay in the loop.
 
 ## Install
 
-### As a Claude Code plugin
+### Add the marketplace and install the plugin
+
+This repo is structured as a single-plugin marketplace, so you can install it directly from GitHub without it being in any third-party catalog:
 
 ```bash
-claude plugins install blog-cover
+# From inside Claude Code:
+/plugin marketplace add MohamedSherifNoureldin/blog-cover-skill
+/plugin install blog-cover@blog-cover-skill
 ```
 
-### From source
+That's it. The skill becomes available as `/blog-cover` after a `/reload-plugins`.
+
+### Install npm dependencies
+
+The Puppeteer renderer needs Node packages. After installing the plugin, run:
+
+```bash
+cd ~/.claude/plugins/cache/blog-cover-skill/*/
+npm install
+```
+
+(or install Puppeteer in any repo where you'll use the skill: `npm install --save-dev puppeteer`)
+
+### Install from source (alternative)
+
+If you'd rather clone the repo manually:
 
 ```bash
 git clone https://github.com/MohamedSherifNoureldin/blog-cover-skill ~/.claude/plugins/blog-cover-skill

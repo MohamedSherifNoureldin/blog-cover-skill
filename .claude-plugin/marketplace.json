@@ -1,0 +1,27 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "blog-cover-skill",
+  "owner": {
+    "name": "Mohamed Sherif"
+  },
+  "metadata": {
+    "description": "Single-plugin marketplace for blog-cover: generate branded blog cover images via 3-concept exploration + unbiased subagent review",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "blog-cover",
+      "description": "Generate branded blog cover images, hero images, and OpenGraph cards. Reads Google Labs DESIGN.md spec (with gstack legacy + tailwind/CSS fallbacks). 3-concept exploration → user picks → unbiased subagent review. Optional --codex flag adds adversarial OpenAI Codex second opinion.",
+      "author": {
+        "name": "Mohamed Sherif"
+      },
+      "category": "design",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/blog-cover"
+      ],
+      "homepage": "https://github.com/MohamedSherifNoureldin/blog-cover-skill"
+    }
+  ]
+}
