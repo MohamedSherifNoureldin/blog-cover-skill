@@ -17,37 +17,34 @@ No auto-commit. No magic. You stay in the loop.
 
 ## Install
 
-### Add the marketplace and install the plugin
+### Quick install (3 steps, ~2 min on first run)
 
-This repo is structured as a single-plugin marketplace, so you can install it directly from GitHub without it being in any third-party catalog:
+From inside Claude Code:
 
 ```bash
-# From inside Claude Code:
 /plugin marketplace add MohamedSherifNoureldin/blog-cover-skill
 /plugin install blog-cover@blog-cover-skill
+/reload-plugins
 ```
 
-That's it. The skill becomes available as `/blog-cover` after a `/reload-plugins`.
+On your first `/blog-cover` invocation, the skill detects that Puppeteer isn't installed yet and asks permission to run `npm install` in the plugin directory (~300MB download, one-time). Approve once and you're done.
 
-### Install npm dependencies
+### Requirements
 
-The Puppeteer renderer needs Node packages. After installing the plugin, run:
+- **Node.js ≥ 18** — install from [nodejs.org](https://nodejs.org) or `brew install node` / `apt install nodejs`. The skill checks at startup and tells you if you need to upgrade.
+- **Network for first run** — Puppeteer download + Google Fonts CDN.
+- **Optional: `codex` CLI** — for the `--codex` flag (adversarial second-opinion review). Install with `npm install -g @openai/codex`. The skill works fine without it; you just lose the codex review pass.
+- **Optional: `@google/design.md` CLI** — auto-fetched via `npx` for the WCAG lint step. No manual install needed.
 
-```bash
-cd ~/.claude/plugins/cache/blog-cover-skill/*/
-npm install
-```
-
-(or install Puppeteer in any repo where you'll use the skill: `npm install --save-dev puppeteer`)
-
-### Install from source (alternative)
-
-If you'd rather clone the repo manually:
+### Install from source (alternative — for hacking on the skill itself)
 
 ```bash
-git clone https://github.com/MohamedSherifNoureldin/blog-cover-skill ~/.claude/plugins/blog-cover-skill
-cd ~/.claude/plugins/blog-cover-skill
+git clone https://github.com/MohamedSherifNoureldin/blog-cover-skill ~/Code/blog-cover-skill
+cd ~/Code/blog-cover-skill
 npm install
+# Then add as a local marketplace:
+#   /plugin marketplace add ~/Code/blog-cover-skill
+#   /plugin install blog-cover@blog-cover-skill
 ```
 
 The repo follows the official Claude plugin layout:

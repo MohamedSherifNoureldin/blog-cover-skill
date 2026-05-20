@@ -36,20 +36,74 @@ Examples (the skill is brand-agnostic — these span domains intentionally):
 
 ## Step 0 — Setup
 
-Confirm the skill's helper scripts are available. Determine the skill's installed path. The scripts live at `{skill_root}/scripts/`:
-- `render.mjs`
-- `extract-brand.mjs`
-- `init-design.mjs`
+Confirm the runtime is ready before doing any work. The plugin's helper scripts live at `{skill_root}/scripts/` (where `{skill_root}` is the SKILL.md's directory). The plugin's `package.json` lives one level up at `{plugin_root}/package.json` (i.e., `{skill_root}/../../package.json` relative to SKILL.md, or `{plugin_root}/` if you can resolve it directly — Claude Code installs plugins under `~/.claude/plugins/cache/<marketplace-name>/<sha>/`).
 
-Confirm Node ≥18 and Puppeteer are available. If Puppeteer is missing, instruct the user:
+### 0a. Detect Node ≥ 18
 
+```bash
+NODE_VERSION=$(node --version 2>/dev/null | sed 's/v//;s/\..*//')
+if [ -z "$NODE_VERSION" ]; then
+  echo "NODE_MISSING"
+elif [ "$NODE_VERSION" -lt 18 ]; then
+  echo "NODE_TOO_OLD: $NODE_VERSION (need >= 18)"
+else
+  echo "NODE_OK: $NODE_VERSION"
+fi
 ```
-This skill needs Puppeteer. Install once with:
-  cd <your-repo> && npm install --save-dev puppeteer
-Then retry.
+
+If `NODE_MISSING` or `NODE_TOO_OLD`, stop and tell the user:
+> blog-cover needs Node.js ≥ 18. Install from https://nodejs.org or via your package manager (`brew install node`, `apt install nodejs`, etc.), then retry.
+
+Do not proceed.
+
+### 0b. Detect Puppeteer + auto-install if missing
+
+Determine the plugin install root. The most reliable way is to resolve the directory containing this SKILL.md, go up two levels (`skills/blog-cover/SKILL.md` → `skills/` → plugin root):
+
+```bash
+SKILL_DIR=$(dirname "$(readlink -f "{path-to-this-SKILL.md}")")
+PLUGIN_ROOT=$(cd "$SKILL_DIR/../.." && pwd)
+echo "PLUGIN_ROOT: $PLUGIN_ROOT"
+test -d "$PLUGIN_ROOT/node_modules/puppeteer" && echo "PUPPETEER_OK" || echo "PUPPETEER_MISSING"
 ```
 
-Stop if missing.
+If `PUPPETEER_OK`, proceed to Step 1.
+
+If `PUPPETEER_MISSING`, do NOT silently install — npm-installing on a user's behalf is a trust-significant action. Use AskUserQuestion:
+
+> blog-cover needs Puppeteer to render covers (it's a headless browser, downloads ~300MB on first install). Install it now into the plugin directory? This is a one-time setup.
+>
+> A) Yes — install Puppeteer now (~300MB download, ~2 min) (recommended)
+> B) No — I'll run `cd {PLUGIN_ROOT} && npm install` myself
+> C) Cancel this skill run
+
+If A:
+```bash
+cd "$PLUGIN_ROOT" && npm install 2>&1 | tail -20
+```
+Surface any errors. If install fails (e.g., network, permission), tell the user the exact command to retry manually.
+
+If B: stop the workflow and print:
+> No problem. Run this in your terminal, then retry `/blog-cover`:
+>
+>   cd {PLUGIN_ROOT} && npm install
+
+If C: stop silently.
+
+### 0c. (Optional) Detect codex CLI for `--codex` flag
+
+Only relevant if `--codex` was passed. If passed and codex is missing, warn the user once but do NOT block — the skill works fine without codex, the user just loses the adversarial second-opinion review:
+
+```bash
+which codex >/dev/null 2>&1 && echo "CODEX_OK" || echo "CODEX_MISSING"
+```
+
+If `--codex` AND `CODEX_MISSING`:
+> --codex was requested but codex CLI is not installed. Skipping the adversarial review (Claude unbiased review still runs). Install with `npm install -g @openai/codex` to enable.
+
+### 0d. (Optional) Detect `@google/design.md` CLI for WCAG lint
+
+Only invoked in Step 2.5, and that step already uses `npx --yes @google/design.md@latest lint` which auto-fetches if missing. No pre-check needed here — the network call is the check.
 
 ---
 
