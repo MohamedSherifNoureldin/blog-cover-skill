@@ -1,23 +1,20 @@
 # blog-cover-skill
 
-A Claude Code skill that generates branded blog cover images.
+A Claude Code plugin for generating branded blog cover and OpenGraph images from a Markdown post or topic.
 
-You point it at a markdown post (or describe a topic), and it:
+It reads brand settings from `DESIGN.md`, `BRAND.md`, a Tailwind config, or `:root` CSS variables. If it cannot find enough brand info, it asks for the missing details and writes a `DESIGN.md` for future runs.
 
-1. Auto-discovers your brand (DESIGN.md → BRAND.md → Tailwind/CSS → interactive)
-2. Generates 3 distinct concept covers at 2240×1260 (or your size)
-3. Lets you pick one (or ask for 3 more)
-4. Runs a fresh unbiased subagent review listing every issue
-5. Optionally runs an adversarial Codex review for a second opinion
-6. Surfaces fixes — you decide which to apply
+Run it with:
 
-No auto-commit. No magic. You stay in the loop.
+```bash
+/blog-cover path/to/post.md
+```
+
+The skill renders three HTML cover options, opens them in your image viewer, and saves the chosen one to `.blog-covers/`. An optional review pass returns specific fix suggestions before you ship.
 
 ---
 
 ## Install
-
-### Quick install (3 steps, ~2 min on first run)
 
 From inside Claude Code:
 
@@ -27,16 +24,107 @@ From inside Claude Code:
 /reload-plugins
 ```
 
-On your first `/blog-cover` invocation, the skill detects that Puppeteer isn't installed yet and asks permission to run `npm install` in the plugin directory (~300MB download, one-time). Approve once and you're done.
+The first `/blog-cover` run prompts to install Puppeteer in the plugin directory (~300MB, one-time). If it succeeds, future runs reuse it.
 
-### Requirements
+## Requirements
 
-- **Node.js ≥ 18** — install from [nodejs.org](https://nodejs.org) or `brew install node` / `apt install nodejs`. The skill checks at startup and tells you if you need to upgrade.
-- **Network for first run** — Puppeteer download + Google Fonts CDN.
-- **Optional: `codex` CLI** — for the `--codex` flag (adversarial second-opinion review). Install with `npm install -g @openai/codex`. The skill works fine without it; you just lose the codex review pass.
-- **Optional: `@google/design.md` CLI** — auto-fetched via `npx` for the WCAG lint step. No manual install needed.
+- **Node.js ≥ 18** (install from [nodejs.org](https://nodejs.org), `brew install node`, or `apt install nodejs`).
+- **Network access on first run** for the Puppeteer download and Google Fonts CDN.
+- **Optional**: the `codex` CLI for the `--codex` flag. Without it, `--codex` is a no-op.
+- **Optional**: `@google/design.md` CLI for the WCAG lint step, auto-fetched via `npx`.
 
-### Install from source (alternative — for hacking on the skill itself)
+## Usage
+
+```
+/blog-cover <markdown-path-or-free-text> [flags]
+```
+
+| Flag | Effect |
+|---|---|
+| `--codex` | Run a second review via the OpenAI Codex CLI and report overlapping findings. |
+| `--interactive` | Skip brand auto-discovery and ask every brand question. |
+| `--size WxH` | Override canvas size for this invocation (default `2240x1260`). |
+| `--quick` | Skip user-prompt gates. Auto-pick the strongest concept and skip the fix-application step. For batch runs. |
+| `--archetype <name>` | Skip the 3-concept exploration and generate one concept in the named archetype. Valid: `centered-hero`, `two-pane-split`, `full-bleed-artifact`, `stacked-vertical`, `diagonal-asymmetric`, `grid-matrix`, `edge-anchored`. |
+
+## Output
+
+```
+.blog-covers/
+├── _shared.css         brand variables shared by all covers
+├── my-post.html        editable HTML source
+├── my-post.png         final cover
+└── .concepts/          throwaway 3-concept exploration (auto-gitignored)
+```
+
+## DESIGN.md
+
+The skill prefers a `DESIGN.md` written to the [Google Labs spec](https://github.com/google-labs-code/design.md). Minimal example:
+
+```markdown
+---
+version: alpha
+name: Acme Inc
+colors:
+  primary: "#0A2540"
+  accent: "#00D924"
+typography:
+  display-xl:
+    fontFamily: Inter
+    fontSize: 96px
+    fontWeight: 800
+url: "acme.com/blog"
+logo: "./public/acme-logo.svg"
+---
+
+## Overview
+Brand personality, target audience, and the response the UI should evoke.
+```
+
+See the [Google spec](https://github.com/google-labs-code/design.md) for the full schema. Generate one with `npx @google/design.md init`, or write it by hand.
+
+### Brand sources checked in order
+
+1. `DESIGN.md` (Google spec, YAML front matter)
+2. `DESIGN.md` (gstack legacy, prose only, produced by [gstack](https://github.com/garryslist/gstack)'s `/design-consultation`)
+3. `BRAND.md` at the repo root, `docs/`, or `.blog-covers/`
+4. `tailwind.config.{js,ts,mjs,cjs}` color tokens
+5. `:root { --vars }` in `src/index.css` or `app/globals.css` (handles shadcn HSL triplets)
+6. Interactive prompts, written back to a Google-spec `DESIGN.md`
+
+### Frontmatter extras read by blog-cover
+
+| Field | Default |
+|---|---|
+| `url` | asked interactively if missing |
+| `logo` | asked interactively if missing |
+| `canvas_size` | `2240x1260` |
+| `output_dir` | `.blog-covers` |
+| `consistency` | `neutral` (`consistent` / `varied` / `neutral`) |
+
+`consistency` controls whether new covers visually align with prior covers, explicitly diverge, or have no constraint.
+
+## Concept generation
+
+Three concepts, each using a different layout archetype and one visual approach picked to fit the post. The visual options span data-led layouts, narrative diagrams, before/after comparisons, literal subject imagery, and quote-led designs. The three are rendered at full resolution and opened in your image viewer. You pick one of three, or ask for three more (capped at three retry rounds).
+
+## Review
+
+A separate review pass checks the selected cover and returns specific fix suggestions. With `--codex`, the skill also runs a Codex review and reports any findings both agree on. Fixes are never applied automatically.
+
+## /frontend-design integration
+
+If Anthropic's `/frontend-design` skill is installed, blog-cover can offer it as an alternate generation path. You can skip it.
+
+## Hand-tweaking
+
+The HTML source stays in `.blog-covers/{slug}.html`. Edit it, then re-render with the plugin's `render.mjs` (the path is `~/.claude/plugins/cache/blog-cover-skill/<sha>/skills/blog-cover/scripts/render.mjs`; the skill prints the exact path in its final report):
+
+```bash
+node <plugin>/scripts/render.mjs .blog-covers/my-post.html .blog-covers/my-post.png 2240 1260
+```
+
+## Install from source
 
 ```bash
 git clone https://github.com/MohamedSherifNoureldin/blog-cover-skill ~/Code/blog-cover-skill
@@ -47,200 +135,22 @@ npm install
 #   /plugin install blog-cover@blog-cover-skill
 ```
 
-The repo follows the official Claude plugin layout:
+## Repo layout
+
 ```
 blog-cover-skill/
-├── .claude-plugin/plugin.json    ← plugin metadata
+├── .claude-plugin/plugin.json    plugin metadata
+├── .claude-plugin/marketplace.json   single-plugin marketplace
 ├── skills/blog-cover/
-│   ├── SKILL.md                  ← orchestrator
-│   ├── scripts/                  ← render.mjs, extract-brand, extract-palette, init-design
-│   ├── references/               ← concept-generation, review prompts
-│   ├── assets/                   ← DESIGN.md.template, _shared.css.template
-│   └── evals/evals.json          ← test cases
-├── examples/                     ← canonical reference brands
-├── README.md / LICENSE / package.json
+│   ├── SKILL.md                  orchestrator
+│   ├── scripts/                  render, extract-brand, extract-palette, init-design
+│   ├── references/               concept-generation, review prompts
+│   ├── assets/                   DESIGN.md and _shared.css templates
+│   └── evals/evals.json          test cases
+├── examples/                     canonical reference brands
+└── README.md, LICENSE, NOTICE, package.json
 ```
-
-You also need Puppeteer in any repo where you'll use the skill:
-
-```bash
-cd <your-repo>
-npm install --save-dev puppeteer
-```
-
----
-
-## Quick start
-
-In any repo, type:
-
-```
-/blog-cover blog-content/why-i-stopped-using-chatgpt-for-recipes.md
-```
-
-First run prompts you for brand details and writes a `DESIGN.md` so you don't have to answer again. Subsequent runs use it automatically.
-
----
-
-## DESIGN.md (Google Labs spec)
-
-The skill reads a `DESIGN.md` at your repo root using the official [Google Labs DESIGN.md specification](https://github.com/google-labs-code/design.md) (open-sourced April 21, 2026, Apache 2.0). Generate one with the official CLI: `npx @google/design.md init`, or by hand:
-
-```markdown
----
-version: alpha
-name: Acme Inc
-description: B2B SaaS for fleet operators
-colors:
-  primary: "#0A2540"
-  accent: "#00D924"
-  background: "#FFFFFF"
-  text: "#0A2540"
-typography:
-  display-xl:
-    fontFamily: Inter
-    fontSize: 96px
-    fontWeight: 800
-  body-md:
-    fontFamily: Inter
-    fontSize: 16px
-    fontWeight: 400
-  label-sm:
-    fontFamily: JetBrains Mono
-    fontSize: 14px
-    fontWeight: 500
-rounded:
-  sm: 4px
-  md: 8px
-url: "acme.com/blog"
-logo: "./public/acme-logo.svg"
-canvas_size: "2240x1260"
-consistency: "neutral"
----
-
-## Overview
-Brand personality, target audience, emotional response the UI should evoke.
-
-## Colors
-Palette descriptions with semantic roles.
-
-## Typography
-Font strategy and usage levels.
-
-## Layout / Elevation & Depth / Shapes / Components / Do's and Don'ts
-(All sections optional but should follow this order if present.)
-```
-
-### Fallback waterfall
-
-If no Google-spec `DESIGN.md` is present, the skill walks this waterfall:
-
-1. **gstack legacy DESIGN.md** (prose-only `## Color` + `## Typography` sections, no YAML frontmatter) — produced by [gstack's](https://github.com/garryslist/gstack) `/design-consultation` skill
-2. **BRAND.md** at repo root, docs/, or .blog-covers/ (treated as gstack-style)
-3. **tailwind.config.{js,ts,mjs,cjs}** color tokens
-4. **`:root { --vars }`** in src/index.css, app/globals.css, etc. (handles shadcn-style bare HSL triplets)
-5. **Interactive bootstrap** — prompts the user, writes a Google-spec DESIGN.md so future invocations are zero-config
-
-### blog-cover-specific frontmatter extras
-
-Top-level Google spec fields are the standard. blog-cover also reads these supplementary fields if present in the frontmatter:
-
-| Field | Required | Default |
-|---|---|---|
-| `url` | recommended | — (asked interactively if missing) |
-| `logo` | recommended | — (asked interactively if missing) |
-| `canvas_size` | no | `2240x1260` |
-| `output_dir` | no | `.blog-covers` |
-| `consistency` | no | `neutral` |
-
-### Consistency posture
-
-| Value | Behavior |
-|---|---|
-| `consistent` | New covers visually align with the existing set |
-| `varied` | New covers explicitly avoid repeating prior layouts |
-| `neutral` | No enforcement; pick the strongest design for the topic |
-
----
-
-## Flags
-
-| Flag | Effect |
-|---|---|
-| `--codex` | Run Codex adversarial review after Claude subagent review |
-| `--interactive` | Skip brand auto-discovery; ask every brand question |
-| `--size WxH` | Override canvas size for this invocation |
-
----
-
-## Output
-
-Covers land in `.blog-covers/` at your repo root:
-
-```
-.blog-covers/
-├── _shared.css                  # brand variables for all covers
-├── my-blog-post.html            # source you can hand-tweak
-├── my-blog-post.png             # final cover
-└── .concepts/                   # throwaway 3-concept exploration (gitignored)
-```
-
-The skill auto-appends `.blog-covers/.concepts/` to your `.gitignore` on first run.
-
----
-
-## How concept generation works
-
-The skill generates **three distinct concepts**, not three variations of the same idea. Each must use a different layout archetype AND a metaphor that fits your actual topic. The skill is brand-agnostic — it works as well for a sourdough blog as for a fintech blog as for a fashion blog.
-
-Metaphor families (the prompt picks one per concept based on what fits your post):
-
-- **Artifact-as-evidence** — the actual thing the post is about, rendered as a real artifact: a recipe card, a chart, a photo, a screenshot, a letter, a journal page
-- **Big-data-point hero** — one number does the work: "67%" / "$1.2M" / "12 years" / "3 ingredients"
-- **Narrative diagram** — timeline, flow, hierarchy, journey, map, lineage
-- **Specimen comparison** — before/after, A/B, then/now, two side-by-side examples
-- **Subject-rendered-literally** — the topic itself shown plainly: a guitar for a music post, a tomato for gardening, a building for architecture
-- **Quote-as-hero** — one short quote typeset as the entire composition
-
-You see all three rendered at full resolution in your OS image viewer, pick one (A/B/C), or ask for 3 more (max 3 retry rounds).
-
----
-
-## How review works
-
-After you pick a concept, a **fresh subagent with no conversation context** reviews it. It rates 1-10 and lists EVERY issue with a concrete fix (not just top 3). You decide which to apply.
-
-With `--codex`, a second adversarial review runs via OpenAI Codex (different model, different perspective). Cross-model agreement is highlighted automatically.
-
-The skill never auto-applies fixes. You ship what you want shipped.
-
-## Optional: /frontend-design delegation
-
-If you have Anthropic's `/frontend-design` skill installed, blog-cover detects it at runtime and offers to delegate concept generation to that specialist for higher-fidelity designs. You can decline and use the in-skill prompt at any time. The in-skill prompt works perfectly without `/frontend-design`.
-
----
-
-## Hand-tweaking
-
-The HTML source stays in `.blog-covers/{slug}.html`. Edit it however you want, then re-render:
-
-```bash
-node ~/.claude/skills/blog-cover/scripts/render.mjs \
-  .blog-covers/my-post.html .blog-covers/my-post.png
-```
-
----
-
-## Requirements
-
-- Node ≥18
-- Puppeteer (installed in your repo or globally)
-- (Optional) `codex` CLI for `--codex` flag: `npm install -g @openai/codex`
-
----
 
 ## License
 
-Apache 2.0. See [LICENSE](./LICENSE) for the full text and [NOTICE](./NOTICE) for required attribution.
-
-Why Apache 2.0 and not MIT: same practical permissiveness (commercial use, modification, redistribution all allowed) plus an explicit patent grant + patent-retaliation clause, plus alignment with [Google's DESIGN.md spec](https://github.com/google-labs-code/design.md) which is also Apache 2.0.
+Apache 2.0. See [LICENSE](./LICENSE) and [NOTICE](./NOTICE).
