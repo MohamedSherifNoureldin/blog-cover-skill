@@ -59,7 +59,7 @@ npm install --save-dev puppeteer
 In any repo, type:
 
 ```
-/blog-cover blog-content/03-ai-phishing.md
+/blog-cover blog-content/why-i-stopped-using-chatgpt-for-recipes.md
 ```
 
 First run prompts you for brand details and writes a `DESIGN.md` so you don't have to answer again. Subsequent runs use it automatically.
@@ -164,8 +164,8 @@ Covers land in `.blog-covers/` at your repo root:
 ```
 .blog-covers/
 ├── _shared.css                  # brand variables for all covers
-├── 03-ai-phishing.html          # source you can hand-tweak
-├── 03-ai-phishing.png           # final cover
+├── my-blog-post.html            # source you can hand-tweak
+├── my-blog-post.png             # final cover
 └── .concepts/                   # throwaway 3-concept exploration (gitignored)
 ```
 
@@ -175,15 +175,18 @@ The skill auto-appends `.blog-covers/.concepts/` to your `.gitignore` on first r
 
 ## How concept generation works
 
-The skill generates **three distinct concepts**, not three variations of the same idea. Each is a different visual metaphor:
+The skill generates **three distinct concepts**, not three variations of the same idea. Each must use a different layout archetype AND a metaphor that fits your actual topic. The skill is brand-agnostic — it works as well for a sourdough blog as for a fintech blog as for a fashion blog.
 
-- Artifact-as-evidence (real email mockup, terminal screenshot)
-- Big-data-point hero (one giant number with supporting visual)
-- Narrative diagram (timeline, kill chain, org tree, flow)
-- Specimen comparison (before/after, A/B)
-- Tool-of-the-trade (the attacker's instrument shown literally)
+Metaphor families (the prompt picks one per concept based on what fits your post):
 
-You see all three rendered at full resolution, pick one (A/B/C), or ask for 3 more (max 3 retry rounds).
+- **Artifact-as-evidence** — the actual thing the post is about, rendered as a real artifact: a recipe card, a chart, a photo, a screenshot, a letter, a journal page
+- **Big-data-point hero** — one number does the work: "67%" / "$1.2M" / "12 years" / "3 ingredients"
+- **Narrative diagram** — timeline, flow, hierarchy, journey, map, lineage
+- **Specimen comparison** — before/after, A/B, then/now, two side-by-side examples
+- **Subject-rendered-literally** — the topic itself shown plainly: a guitar for a music post, a tomato for gardening, a building for architecture
+- **Quote-as-hero** — one short quote typeset as the entire composition
+
+You see all three rendered at full resolution in your OS image viewer, pick one (A/B/C), or ask for 3 more (max 3 retry rounds).
 
 ---
 

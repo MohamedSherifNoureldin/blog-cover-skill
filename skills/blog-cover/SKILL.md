@@ -13,10 +13,10 @@ You are running the `/blog-cover` skill. Generate a single branded blog cover im
 /blog-cover <markdown-path-or-free-text> [--codex] [--interactive] [--size WxH]
 ```
 
-Examples:
-- `/blog-cover blog-content/03-ai-phishing.md`
-- `/blog-cover "AI phishing in 2026" --codex`
-- `/blog-cover blog-content/03-ai-phishing.md --interactive`
+Examples (the skill is brand-agnostic — these span domains intentionally):
+- `/blog-cover blog-content/sourdough-hydration-guide.md`
+- `/blog-cover "The five most expensive mistakes I made as a first-time founder" --codex`
+- `/blog-cover content/posts/why-im-betting-on-passive-houses.md --interactive`
 - `/blog-cover post.md --size 1200x630`
 
 ## Flags

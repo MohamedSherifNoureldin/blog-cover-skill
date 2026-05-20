@@ -62,7 +62,16 @@ Each must be a complete, self-contained HTML page that renders into a {{CANVAS_W
    | **Grid / matrix** | Multi-cell composition: 2×2, 3×3, or list of N rows. Each cell carries a unit of info. |
    | **Edge-anchored / margin** | All content in 2-3 edges (top + left, or bottom row); large negative-space center holds a single focal element. |
 
-   Then within each chosen archetype, pick a distinct visual METAPHOR (artifact-as-evidence, big-data-point hero, narrative-diagram, specimen-comparison, tool-of-the-trade, etc.).
+   Then within each chosen archetype, pick a distinct visual METAPHOR. The metaphor should match the post's actual topic — DO NOT default to your training-data prior of what blog covers look like. The skill is brand-agnostic and used across every domain: food, finance, fitness, science, music, parenting, gardening, design, infrastructure, software, climate, art, education, and yes occasionally security.
+
+   Example metaphor families (apply to the post's actual subject — a flower post needs flower-appropriate visuals, not "kill chains"):
+
+   - **Artifact-as-evidence** — show the actual thing the post discusses, as a real-feeling artifact: a recipe card, a screenshot, a photo, a chart, a letter, a receipt, a journal page, a product mockup
+   - **Big-data-point hero** — one number does the work: "67%" / "$1.2M" / "12 years" / "3 ingredients", with a supporting visual that earns the size
+   - **Narrative diagram** — timeline, flow, hierarchy, journey, map, lineage, decision tree
+   - **Specimen comparison** — before/after, A/B, then/now, mine/theirs
+   - **Subject-rendered-literally** — the topic shown as-is: a guitar for a music post, a tomato for a gardening post, a chart for a finance post, a building for an architecture post
+   - **Quote-as-hero** — a single short quote (8 words max) typeset as the entire composition
 
    Before you write a single line of HTML for concept B, look at concept A's layout and ask: "is the SHAPE of this composition different, not just the content?" If no, restart.
 

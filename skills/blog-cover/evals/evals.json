@@ -3,30 +3,37 @@
   "evals": [
     {
       "id": 1,
-      "name": "markdown-with-design-md",
-      "prompt": "I just wrote a blog post about how AI made phishing emails 14x more common since ChatGPT shipped. The draft is at blog-content/03-ai-phishing-attacks.md. Generate a hero cover image for it. We have a DESIGN.md in the repo with our brand colors.",
-      "expected_output": "Skill detects markdown mode, parses DESIGN.md for brand, generates 3 concept HTMLs using 3 distinct layout archetypes, renders them at 2240x1260, opens all 3 in the user's OS image viewer (open/xdg-open/start), asks user to pick, promotes the winner with CSS path rewrite, runs unbiased subagent review listing ALL issues, surfaces fixes for user to accept/reject (no auto-apply).",
+      "name": "markdown-with-google-design-md",
+      "prompt": "I wrote a blog post about why my sourdough kept failing for six months and what finally fixed it (it was hydration, not the starter). The draft is at content/posts/sourdough-hydration.md. Generate a hero cover image. I have a DESIGN.md in the repo following the Google spec.",
+      "expected_output": "Skill detects markdown mode, parses DESIGN.md via the Google Labs spec parser (extract-brand.mjs returns schema=google-labs), generates 3 concept HTMLs using 3 distinct layout archetypes with metaphors appropriate for a baking/cooking post (e.g., artifact-as-evidence showing a real loaf cross-section, big-data-point hero with the hydration percentage, narrative diagram of the process). Renders them at 2240x1260, opens all 3 in the user's OS image viewer, asks user to pick, promotes the winner with CSS path rewrite, runs unbiased subagent review listing ALL issues, surfaces fixes for user to accept/reject (no auto-apply).",
       "files": []
     },
     {
       "id": 2,
       "name": "free-text-prompt-no-design-file",
-      "prompt": "/blog-cover \"Five ways CISOs are getting BEC attacks wrong in 2026\" --codex",
-      "expected_output": "Skill detects free-text mode (no markdown path), falls through brand-discovery waterfall (DESIGN.md → BRAND.md → Tailwind/CSS → interactive), generates 3 concept HTMLs with archetype diversity, opens them in OS viewer, asks user to pick + missing brand fields, runs BOTH the Claude subagent review AND Codex adversarial review (because --codex flag set), surfaces cross-model agreement analysis with all issues from both reviewers.",
+      "prompt": "/blog-cover \"The five most expensive mistakes I made as a first-time founder\" --codex",
+      "expected_output": "Skill detects free-text mode (no markdown path), falls through brand-discovery waterfall (Google DESIGN.md → gstack legacy → BRAND.md → Tailwind+CSS → interactive bootstrap), generates 3 concept HTMLs with archetype diversity and founder/business-essay-appropriate metaphors, opens them in OS viewer, asks user to pick + missing brand fields, runs BOTH the Claude subagent review AND Codex adversarial review (because --codex flag set), surfaces cross-model agreement analysis with all issues from both reviewers.",
       "files": []
     },
     {
       "id": 3,
-      "name": "interactive-flag-first-run",
-      "prompt": "I want to generate a blog cover for a post I haven't written yet. Use --interactive to walk me through the brand setup. The post will be about ransomware-specific awareness training.",
-      "expected_output": "Skill detects --interactive flag, skips brand auto-discovery, runs init-design.mjs flow asking for brand_name, url, logo, colors, fonts, voice, visual preferences. Writes a fresh DESIGN.md to the repo root. Then proceeds through normal 3-concept flow. The interactive answers are saved so subsequent invocations don't re-ask.",
+      "name": "interactive-flag-first-run-flower-blog",
+      "prompt": "Generate a blog cover for my new garden-design post 'Five perennials that survive a Brooklyn rooftop'. The repo has no DESIGN.md — use --interactive so I can walk through brand setup for the first time.",
+      "expected_output": "Skill detects --interactive flag, skips brand auto-discovery, runs init-design.mjs flow asking for brand_name, url, logo, colors, fonts, voice, visual preferences. Writes a fresh Google-spec DESIGN.md to the repo root. Then proceeds through normal 3-concept flow with metaphors appropriate for a horticulture post (e.g., specimen comparison of 5 plants, full-bleed botanical illustration, big-data-point with survival percentages). The interactive answers are saved so subsequent invocations don't re-ask.",
       "files": []
     },
     {
       "id": 4,
-      "name": "regenerate-existing-cover",
-      "prompt": "/blog-cover blog-content/07-drift-protocol.md  — the cover I generated last week needs a refresh, the design feels stale",
-      "expected_output": "Skill detects an existing .blog-covers/{slug}.html and .blog-covers/{slug}.png, warns 'Already exists. Regenerate? [Y/n]'. On Y, runs the full 3-concept flow again, passing the existing cover as 'do not repeat this approach' context. New cover is distinctly different from the prior one (different archetype). Old HTML/PNG kept in .blog-covers/.archive/ for rollback.",
+      "name": "regenerate-existing-cover-music-post",
+      "prompt": "/blog-cover content/posts/why-fender-stratocasters-stayed-popular.md  — the cover I generated last week needs a refresh, the design feels stale",
+      "expected_output": "Skill detects an existing .blog-covers/{slug}.html and .blog-covers/{slug}.png, warns 'Already exists. Regenerate? [Y/n]'. On Y, runs the full 3-concept flow again, passing the existing cover as 'do not repeat this approach' context. New cover is distinctly different from the prior one (different archetype AND different metaphor). Concepts use music-relevant visual language (e.g., literal guitar render, timeline of design evolution, quote-as-hero from an iconic player). Old HTML/PNG kept in .blog-covers/.archive/ for rollback.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "security-domain-still-works",
+      "prompt": "/blog-cover blog-content/16-ceo-fraud-bec-2026.md — generate the cover for our BEC post",
+      "expected_output": "Skill works equally well for security content: parses brand from DESIGN.md, generates 3 archetype-diverse concepts. For a BEC/security post, security-appropriate metaphors are valid (email mockup as artifact, kill-chain narrative diagram). The skill should NOT default to security metaphors for non-security posts, but should use them when the topic calls for them.",
       "files": []
     }
   ]
