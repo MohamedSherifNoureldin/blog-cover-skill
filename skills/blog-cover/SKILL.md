@@ -10,7 +10,7 @@ You are running the `/blog-cover` skill. Generate a single branded blog cover im
 ## Usage
 
 ```
-/blog-cover <markdown-path-or-free-text> [--codex] [--interactive] [--size WxH]
+/blog-cover <markdown-path-or-free-text> [--codex] [--interactive] [--size WxH] [--quick] [--archetype <name>]
 ```
 
 Examples (the skill is brand-agnostic — these span domains intentionally):
@@ -18,6 +18,9 @@ Examples (the skill is brand-agnostic — these span domains intentionally):
 - `/blog-cover "The five most expensive mistakes I made as a first-time founder" --codex`
 - `/blog-cover content/posts/why-im-betting-on-passive-houses.md --interactive`
 - `/blog-cover post.md --size 1200x630`
+- `/blog-cover post.md --quick` — skip the picker, auto-promote the strongest concept
+- `/blog-cover post.md --archetype centered-hero` — skip 3-concept exploration, generate just that archetype
+- `/blog-cover post.md --quick --archetype grid-matrix` — fully unattended single-concept run (for batch backfilling)
 
 ## Flags
 
@@ -26,6 +29,8 @@ Examples (the skill is brand-agnostic — these span domains intentionally):
 | `--codex` | After Claude subagent review, also run an adversarial Codex review |
 | `--interactive` | Skip brand auto-discovery; ask the user every brand question |
 | `--size WxH` | Override canvas size (default 2240x1260 or `canvas_size` from DESIGN.md) |
+| `--quick` | Skip all user-prompt gates. Auto-pick the strongest concept after the review pass; auto-ship without applying fixes. Use for batch / scheduled runs. |
+| `--archetype <name>` | Skip 3-concept exploration entirely. Generate exactly one concept using the named archetype. Valid names: `centered-hero`, `two-pane-split`, `full-bleed-artifact`, `stacked-vertical`, `diagonal-asymmetric`, `grid-matrix`, `edge-anchored`. |
 
 ---
 
@@ -91,11 +96,26 @@ This returns dominant colors + a `suggested` block with `primary_bg / accent / t
 
 Required-minimum fields: `brand_name`, `url`, `logo`, `colors` (with at least primary_bg + accent + text).
 
-If all four are present, the brand spec is sufficient. Proceed to Step 3.
+If all four are present, the brand spec is sufficient. Proceed to Step 2.5.
 
 If `source === "tailwind+css"`, you have colors but probably nothing else. Surface to the user what you found and ask for the missing pieces in ONE AskUserQuestion batch.
 
 If `source === "none"`, fall through to interactive bootstrap (2c).
+
+### 2.5. WCAG validation via `@google/design.md` lint
+
+If `schema === "google-labs"` AND the DESIGN.md was found (not bootstrapped this run), run the official Google Labs linter to validate brand-token accessibility before spending tokens on concept generation. The lint catches issues like "accent color has insufficient contrast against background" — issues that would otherwise surface as review-pass complaints AFTER an entire cover is rendered.
+
+```bash
+# Skip silently if the CLI isn't available; this is a quality nice-to-have, not a blocker
+if command -v npx >/dev/null 2>&1; then
+  npx --yes @google/design.md@latest lint <DESIGN.md path> 2>&1 || true
+fi
+```
+
+Surface any WARNING/ERROR output to the user once, briefly. Continue regardless — the user may have intentionally non-compliant brand colors (e.g., a low-contrast accent reserved for decorative use only). Do NOT block the workflow.
+
+If `--quick` is set, capture the lint output silently and only surface if there are blocking errors. Don't pause for warnings.
 
 ### 2c. Interactive bootstrap (`init-design.mjs`)
 
@@ -157,6 +177,8 @@ Surface this choice to the user via AskUserQuestion ONLY if the brand's `consist
 
 ### 4b. In-skill concept generation
 
+**If `--archetype <name>` is set**, you generate ONE concept using that specific archetype instead of 3 distinct ones. Skip the "3 different archetypes" rule and proceed to single-concept generation. The picker step (Step 6) is also skipped because there's nothing to pick — fast-forward to Step 7 (promote winner) immediately after rendering.
+
 Read `{skill_root}/references/concept-generation.md` as your template. Fill in:
 - All brand fields from Step 2
 - Topic, angle, key data from Step 3
@@ -204,6 +226,12 @@ Verify all three PNGs exist. If any failed, fix the offending HTML and re-render
 ---
 
 ## Step 6 — Picker UI
+
+**Skip this entire step** if either `--archetype <name>` (there's only one concept to pick) OR `--quick` (the auto-pick rule below replaces user choice). For `--quick`, auto-pick logic:
+- If `--archetype` is also set: trivially pick the one concept generated
+- Otherwise: spawn a lightweight subagent with the 3 PNGs and ask it to pick the strongest one given the brand's `consistency` posture and the post topic. The subagent returns "A", "B", or "C" and a 1-sentence reason. Log the auto-pick decision in the final report so the user can see what was chosen and why.
+
+Otherwise (no `--quick`, no `--archetype`):
 
 **Critical: the user must actually SEE the PNGs in their OS image viewer.** The Read tool displays images to YOU (the assistant) but not necessarily to the user — depending on their UI it may or may not render inline, and even when it does they can't manipulate, zoom, or save them. You MUST open the files in the user's native image viewer.
 
@@ -333,7 +361,9 @@ CROSS-MODEL AGREEMENT
 
 ## Step 9 — Apply fixes (user-gated)
 
-DO NOT auto-apply fixes. Use AskUserQuestion:
+**Skip this step entirely if `--quick` is set.** Auto-choose option C (skip fixes, ship as-is) and proceed to Step 10. Log in the final report that fixes were skipped due to `--quick` along with a one-line summary of the review verdict so the user can re-run without `--quick` later if they want to apply fixes.
+
+Otherwise, DO NOT auto-apply fixes. Use AskUserQuestion:
 
 ```
 Apply review fixes?
